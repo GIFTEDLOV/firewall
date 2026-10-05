@@ -12,9 +12,11 @@ import genlayer as gl
 from dataclasses import dataclass
 from genlayer.storage import DynArray, allow as allow_storage
 from genlayer.types import Address, u256
+from genlayer.types.keccak import Keccak256
 
 SEMANTIC_SCHEMA = "FIREWALL_MANDATE_V1"
-PERMIT_TTL = u256(86400)
+PERMIT_TTL = u256(86400)  # pyright: ignore[reportCallIssue]
+PERMIT_BINDING_SCHEMA = "FIREWALL_PERMIT_BINDING_V1"
 SEMANTIC_KEYS = (
     "intent_satisfied", "scope_expanded", "prohibited_effect_present",
     "economic_terms_consistent", "administrative_authority_changed",
@@ -130,10 +132,10 @@ class Firewall(gl.contract.Contract):
     permits: gl.storage.DynArray[PermitRecord]
 
     def __init__(self):
-        self.next_mandate_number = u256(1)
-        self.next_execution_number = u256(1)
-        self.next_adjudication_number = u256(1)
-        self.next_permit_number = u256(1)
+        self.next_mandate_number = u256(1)  # pyright: ignore[reportCallIssue]
+        self.next_execution_number = u256(1)  # pyright: ignore[reportCallIssue]
+        self.next_adjudication_number = u256(1)  # pyright: ignore[reportCallIssue]
+        self.next_permit_number = u256(1)  # pyright: ignore[reportCallIssue]
 
     def _id(self, prefix: str, number: u256) -> str:
         return prefix + "-" + str(number).zfill(8)
@@ -175,6 +177,23 @@ class Firewall(gl.contract.Contract):
         ):
             return "EXECUTION_PERMITTED"
         return "EXECUTION_BLOCKED"
+
+    def _permit_binding_digest(
+        self, mandate: MandateRecord, execution: ExecutionRecord,
+        adjudication: AdjudicationRecord, issued_at: u256,
+    ) -> bytes:
+        expires_at = issued_at + PERMIT_TTL
+        canonical_fields = [
+            PERMIT_BINDING_SCHEMA,
+            mandate.mandate_id, str(mandate.mandate_version), mandate.proposal_hash.hex(),
+            execution.execution_id, execution.bundle_hash.hex(), str(execution.chain_id),
+            execution.targets_digest.hex(), execution.values_digest.hex(),
+            execution.calldata_digest.hex(), execution.target_code_hashes_digest.hex(),
+            execution.implementation_hashes_digest.hex(), adjudication.adjudication_id,
+            str(adjudication.generation), SEMANTIC_SCHEMA, str(issued_at), str(expires_at),
+        ]
+        payload = json.dumps(canonical_fields, separators=(",", ":"))
+        return Keccak256(payload.encode("utf-8")).digest()
 
     def _parse_semantic_result(self, raw: dict) -> dict:
         assert type(raw) is dict
@@ -235,7 +254,7 @@ class Firewall(gl.contract.Contract):
         self._assert_digest(proposal_text_sha256)
         self._assert_digest(mandate_digest)
         assert proposal_text != ""
-        assert proposal_text_bytes == u256(len(proposal_text.encode("utf-8")))
+        assert proposal_text_bytes == u256(len(proposal_text.encode("utf-8")))  # pyright: ignore[reportCallIssue]
         mandate_id = self._id("MAN", self.next_mandate_number)
         self.next_mandate_number += 1
         self.mandates.append(MandateRecord(
@@ -243,7 +262,7 @@ class Firewall(gl.contract.Contract):
             governance_contract, proposal_external_id, proposal_hash,
             proposal_source, proposal_text, proposal_text_sha256,
             proposal_text_bytes, mandate_version, mandate_digest,
-            "MANDATE_DRAFT", u256(0),
+            "MANDATE_DRAFT", u256(0),  # pyright: ignore[reportCallIssue]
         ))
         return mandate_id
 
@@ -277,7 +296,7 @@ class Firewall(gl.contract.Contract):
             values_digest, calldata_digest, code_facts_digest,
             target_code_hashes_digest, implementation_hashes_digest,
             expected_evidence_hash, semantic_input, "EXECUTION_COMMITTED",
-            b"", u256(0),
+            b"", u256(0),  # pyright: ignore[reportCallIssue]
         ))
         return execution_id
 
@@ -308,7 +327,7 @@ class Firewall(gl.contract.Contract):
         # Caller supplies only a selector. The semantic vector is consensus output.
         execution = self._find_execution(execution_id)
         assert execution.state == "EVIDENCE_AUTHENTICATED"
-        assert execution.generation == u256(0)
+        assert execution.generation == u256(0)  # pyright: ignore[reportCallIssue]
         mandate = self._find_mandate(execution.mandate_id)
         assert mandate.state == "MANDATE_FROZEN"
         prompt = (
@@ -324,14 +343,14 @@ class Firewall(gl.contract.Contract):
         self.next_adjudication_number += 1
         self.adjudications.append(AdjudicationRecord(
             adjudication_id, execution.mandate_id, execution_id,
-            execution.evidence_hash, u256(1), SEMANTIC_SCHEMA,
+            execution.evidence_hash, u256(1), SEMANTIC_SCHEMA,  # pyright: ignore[reportCallIssue]
             result["intent_satisfied"], result["scope_expanded"],
             result["prohibited_effect_present"], result["economic_terms_consistent"],
             result["administrative_authority_changed"],
             result["implementation_behavior_consistent"], result["evidence_sufficient"],
-            self._derive_verdict(result), u256(0),
+            self._derive_verdict(result), u256(0),  # pyright: ignore[reportCallIssue]
         ))
-        execution.generation = u256(1)
+        execution.generation = u256(1)  # pyright: ignore[reportCallIssue]
         execution.state = "ADJUDICATED"
         return adjudication_id
 
@@ -346,6 +365,7 @@ class Firewall(gl.contract.Contract):
         assert adjudication.verdict == "EXECUTION_PERMITTED"
         assert adjudication.semantic_schema == SEMANTIC_SCHEMA
         self._assert_digest(permit_binding_hash)
+        assert permit_binding_hash == self._permit_binding_digest(mandate, execution, adjudication, issued_at)
         permit_id = self._id("PRM", self.next_permit_number)
         self.next_permit_number += 1
         self.permits.append(PermitRecord(

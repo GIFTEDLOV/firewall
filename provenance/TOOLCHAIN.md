@@ -36,3 +36,42 @@ Research source: [GenLayer Networks](https://docs.genlayer.com/developers/networ
 No network was selected, started, funded, contacted, or written to during Gate 0/1. No faucet, deployment, wallet, production secret, or live consensus was used.
 
 The official docs currently require an explicit `studio-dev` preset for the 61997 preview and warn not to relabel `studionet`. This repository records the values but deliberately does not assert that any live integration is complete.
+
+## Gate 3 runner closure
+
+The contract header pins the runner artifact
+`py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0`. The
+installed linter's default latest selector resolves to
+`v0.6.0-rc8`, which does not contain that artifact. The exact local runner is
+available in the rc2 bundle/cache as `v0.6.0-rc2`.
+
+| Item | Gate 3 value |
+| --- | --- |
+| `EXACT_STUDIO_DEV_CHAIN_ID` | `61997` |
+| `EXACT_STUDIO_DEV_RPC` | `https://studio-dev.genlayer.com/api` |
+| `EXACT_REQUIRED_RUNNER_ID` | `py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0` |
+| `EXACT_RUNNER_ARTIFACT_NAME` | `py-genlayer` at the pinned content ID above |
+| `EXACT_RUNNER_SOURCE` | local official linter cache/bundle, selected with `GENVM_VERSION=v0.6.0-rc2` |
+| Direct/GLSim prebuilt tree | `C:\Users\DELL\.cache\gltest-direct\trees-v2\v0.6.0-rc2` |
+| GLSim local RPC / chain | `http://127.0.0.1:4010/api` / `61127` |
+| GLSim validators | `5` |
+
+The official gates use the explicit rc2 selector and the Python Scripts path:
+
+```powershell
+$env:GENVM_VERSION = 'v0.6.0-rc2'
+$env:Path = 'C:\Users\DELL\AppData\Local\Python\pythoncore-3.14-64\Scripts;' + $env:Path
+genvm-lint lint contracts/firewall.py --json
+genvm-lint validate contracts/firewall.py --json
+genvm-lint check contracts/firewall.py --json
+genvm-lint schema contracts/firewall.py --json
+genvm-lint typecheck contracts/firewall.py --json
+```
+
+For Windows GLSim only, `scripts/glsim_windows.py` applies a checked-in
+adapter shim at the SDK boundary: it replaces the rc2 SDK's empty method key
+with `method`, converts decoded `memoryview` byte fields to `bytes`, and uses a
+pipe for Direct Mode stdin injection. This does not alter Firewall contract
+semantics or any network configuration. Without this shim, the installed
+`genlayer-py 0.19.0rc2` / current GLSim combination fails before contract
+execution with calldata-shape and Windows temporary-file errors.

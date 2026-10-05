@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from web3 import Web3
 
 
 def digest(byte: int) -> bytes:
@@ -19,6 +20,22 @@ def semantic(**overrides):
     }
     result.update(overrides)
     return json.dumps(result, separators=(",", ":"))
+
+
+def permit_binding_hash(firewall, execution_id, adjudication_id, issued_at):
+    mandate = firewall.get_mandates()[0]
+    execution = next(item for item in firewall.get_executions() if item.execution_id == execution_id)
+    adjudication = next(item for item in firewall.get_adjudications() if item.adjudication_id == adjudication_id)
+    fields = [
+        "FIREWALL_PERMIT_BINDING_V1",
+        mandate.mandate_id, str(mandate.mandate_version), mandate.proposal_hash.hex(),
+        execution.execution_id, execution.bundle_hash.hex(), str(execution.chain_id),
+        execution.targets_digest.hex(), execution.values_digest.hex(), execution.calldata_digest.hex(),
+        execution.target_code_hashes_digest.hex(), execution.implementation_hashes_digest.hex(),
+        adjudication.adjudication_id, str(adjudication.generation), "FIREWALL_MANDATE_V1",
+        str(issued_at), str(issued_at + 86400),
+    ]
+    return Web3.keccak(text=json.dumps(fields, separators=(",", ":")))
 
 
 def create_and_commit(firewall):
@@ -43,7 +60,9 @@ def test_direct_mode_adjudication_is_consensus_selected_and_permit_is_determinis
     adjudication_id = firewall.adjudicate_execution(execution_id)
     assert adjudication_id == "ADJ-00000001"
     assert firewall.get_adjudications()[0].verdict == "EXECUTION_PERMITTED"
-    permit_id = firewall.issue_permit(execution_id, adjudication_id, 120, digest(13))
+    with pytest.raises(Exception):
+        firewall.issue_permit(execution_id, adjudication_id, 120, digest(13))
+    permit_id = firewall.issue_permit(execution_id, adjudication_id, 120, permit_binding_hash(firewall, execution_id, adjudication_id, 120))
     assert permit_id == "PRM-00000001"
     permit = firewall.get_permits()[0]
     assert permit.status == "ACTIVE"

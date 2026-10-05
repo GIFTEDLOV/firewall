@@ -29,3 +29,14 @@ The three informational items are: no hosted/full-consensus write was run;
 manual imports remain explicitly unverified provenance; and static EVM facts do
 not prove arbitrary runtime behavior. These are documented product boundaries,
 not hidden approvals.
+
+## Gate 3 local red-team disposition
+
+The release-candidate review rechecked the owner boundary, exact semantic
+parser, permit binding, generation/replay guards, transaction journal
+postconditions, chain separation, controlled-fixture labeling, and the Windows
+GLSim adapter. No Critical or High findings remain. The only informational
+runtime item is that the installed rc2 SDK/GLSim family requires the checked-in
+local calldata/Windows bootstrap shim documented in `provenance/TOOLCHAIN.md`.
+
+`CRITICAL 0 · HIGH 0 · MEDIUM 0 · LOW 0 · INFO 4`

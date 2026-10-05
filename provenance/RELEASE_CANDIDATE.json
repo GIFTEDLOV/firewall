@@ -1,0 +1,41 @@
+{
+  "format": "FIREWALL_RELEASE_CANDIDATE_V1",
+  "status": "LOCAL_RELEASE_CANDIDATE",
+  "workspace": "C:\\Users\\DELL\\Firewall",
+  "starting_head": "1f622c9cf9674fd806032c8374ef21ddba1eb815",
+  "release_head": null,
+  "source_hashes": {
+    "contract_sha256": "3aa5832d0686069ee0d08527e08c340aa50cbfe77336a65caf89ae36a644720b",
+    "abi_sha256": "928b03e2f1c768794a95f2101609984673c8ac7118587cfe4d5ca4bfddfbaecc",
+    "backend_release_id": "d87e62b73071888a2b91d97ee3abef09e1b5747bc3fca60cb1156d9ab3e75b71",
+    "frontend_release_id": "7f3008b1ac5d8a63d62316a682d615543716c49a04e4ba474b98d5b4b9cd3e7a"
+  },
+  "genvm": {
+    "runner": "py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0",
+    "version": "v0.6.0-rc2",
+    "lint": "PASS",
+    "validate": "PASS",
+    "check": "PASS",
+    "schema": "PASS",
+    "typecheck": "PASS",
+    "official_method_count": 14,
+    "schema_parity": "PASS"
+  },
+  "local_qualification": {
+    "environment": "GLSim",
+    "chain_id": 61127,
+    "rpc": "http://127.0.0.1:4010/api",
+    "validators": 5,
+    "case_a": "EXECUTION_PERMITTED_WITH_BOUND_PERMIT",
+    "case_b": "EXECUTION_BLOCKED_WITH_NO_PERMIT",
+    "result_shopping": false
+  },
+  "external_writes": {
+    "blockchain_writes": 0,
+    "deployments": 0,
+    "faucet_used": 0,
+    "github_pushed": 0,
+    "vercel_deployed": 0
+  },
+  "release_head_note": "The final Git commit hash is recorded in the Gate 3 handoff after the single local freeze commit; no transaction hashes or addresses are embedded here."
+}
