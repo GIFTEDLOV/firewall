@@ -42,3 +42,32 @@ There are no live RPC writes in Gate 1. The GenLayer client package exposes the 
 ## UI posture
 
 The web app has typed routes and an empty canonical state. It never inserts sample mandates, fake verdicts, fabricated AI prose, or invented addresses. Pending transaction records must be persisted in a later client integration and must keep the distinction between finality and execution success.
+# Gate 2 architecture
+
+Firewall is a monorepo with a protocol core and read-oriented application
+services:
+
+```text
+apps/web -> typed API/read-model client -> apps/api orchestration
+                                      -> adapters / analyzer / evidence
+                                      -> GenLayer read/write client boundary
+contracts/firewall.py -> canonical state, semantic consensus, policy, permits
+```
+
+The API may prepare imports, analysis, evidence packages, and transaction
+journals. It may not invent canonical permits or replace contract readback.
+`packages/domain` owns strict schemas and identities; `shared` owns canonical
+JSON and hashing; `policy-engine` mirrors the contract policy for UX prediction
+and marks it noncanonical; `evm-analyzer` emits deterministic facts and explicit
+unknowns; `governance-adapters` normalize Governor, Safe, and manual inputs;
+`genlayer-client` owns crash-safe transaction lifecycle records.
+
+The only semantic authority is the GenLayer execution inside
+`adjudicate_execution`. The model output is bounded to the seven-field V1
+schema. Everything else is deterministic or transport/orchestration state.
+
+## Local persistence boundary
+
+Gate 2 uses injectable in-memory local workflow state and an injectable
+transaction journal store. Replacing these with SQLite/Postgres changes only
+the index/cache layer; it cannot change contract state or permit authority.

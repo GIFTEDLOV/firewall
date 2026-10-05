@@ -37,6 +37,11 @@ export function adjudicationBindingHash(adjudication: Pick<Adjudication, "mandat
   return hashCanonical(adjudication as unknown as CanonicalValue);
 }
 
-export function permitBindingHash(permit: Pick<Permit, "mandateId" | "mandateVersion" | "proposalHash" | "executionId" | "executionBundleHash" | "chainId" | "targetAddresses" | "calldataValueDigest" | "targetCodeHashes" | "implementationHashes" | "adjudicationId" | "adjudicationGeneration" | "semanticSchema" | "issuedAt" | "expiresAt">): `0x${string}` {
+export function permitBindingHash(permit: Pick<Permit, "mandateId" | "mandateVersion" | "proposalHash" | "executionId" | "executionBundleHash" | "chainId" | "targetsDigest" | "valuesDigest" | "calldataDigest" | "targetCodeHashesDigest" | "implementationHashesDigest" | "adjudicationId" | "adjudicationGeneration" | "semanticSchema" | "issuedAt" | "expiresAt">): `0x${string}` {
   return hashCanonical(permit as unknown as CanonicalValue);
+}
+
+export function permitBindsExactFacts(permit: Permit, facts: Pick<Permit, "mandateId" | "mandateVersion" | "proposalHash" | "executionId" | "executionBundleHash" | "chainId" | "targetsDigest" | "valuesDigest" | "calldataDigest" | "targetCodeHashesDigest" | "implementationHashesDigest" | "adjudicationId" | "adjudicationGeneration" | "semanticSchema" | "issuedAt" | "expiresAt">): boolean {
+  const keys = ["mandateId", "mandateVersion", "proposalHash", "executionId", "executionBundleHash", "chainId", "targetsDigest", "valuesDigest", "calldataDigest", "targetCodeHashesDigest", "implementationHashesDigest", "adjudicationId", "adjudicationGeneration", "semanticSchema", "issuedAt", "expiresAt"] as const;
+  return keys.every((key) => permit[key] === facts[key]) && permit.permitBindingHash.toLowerCase() === permitBindingHash(facts).toLowerCase();
 }

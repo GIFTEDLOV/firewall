@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeCall, compareExecutionToMandate, detectProxyType, extractSelector, KNOWN_SELECTORS } from "./index.js";
+import { analyzeCall, compareExecutionToMandate, detectDeterministicViolations, detectProxyType, extractSelector, KNOWN_SELECTORS, scanBytecodeFlags } from "./index.js";
 
 describe("EVM analyzer", () => {
   it("extracts selectors and detects unknown calldata", () => {
@@ -28,5 +28,20 @@ describe("EVM analyzer", () => {
     expect(assessment.valueChanged).toBe(true);
     expect(assessment.implementationChanged).toBe(true);
     expect(assessment.dangerousCapabilitiesPresent).toBe(true);
+    const violations = detectDeterministicViolations(mandate, candidate);
+    expect(violations.hardBlock).toBe(true);
+    expect(violations.reasons).toContain("UPGRADE_OUTSIDE_SCOPE");
+    expect(violations.reasons).toContain("NATIVE_VALUE_EXCEEDS_CAP");
+  });
+
+  it("recognizes role, admin, burn and bytecode behavior flags", () => {
+    const role = analyzeCall({ address: "0x0000000000000000000000000000000000000001", calldata: KNOWN_SELECTORS.grantRole as `0x${string}`, nativeValue: "0", proxyFacts: { codeHash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", bytecode: "0x60f4ff" as `0x${string}` } });
+    expect(role.dangerousCapabilities).toContain("ROLE_GRANT");
+    expect(role.dangerousCapabilities).toContain("ADMIN_AUTHORITY_CHANGE");
+    expect(role.unknowns).toContain("DELEGATECALL_VISIBLE");
+    expect(role.unknowns).toContain("SELFDESTRUCT_VISIBLE");
+    const burn = analyzeCall({ address: "0x0000000000000000000000000000000000000001", calldata: KNOWN_SELECTORS.burn as `0x${string}`, nativeValue: "0" });
+    expect(burn.dangerousCapabilities).toContain("BURN_OPERATION");
+    expect(scanBytecodeFlags("0x60f0fbff" as `0x${string}`)).toEqual(["CREATE_VISIBLE", "CREATE2_VISIBLE", "SELFDESTRUCT_VISIBLE"]);
   });
 });

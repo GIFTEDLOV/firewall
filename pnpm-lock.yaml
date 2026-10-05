@@ -6,7 +6,14 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@playwright/test':
+        specifier: 1.51.1
+        version: 1.51.1
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.7.0)(tsx@4.20.5)
 
   apps/api:
     dependencies:
@@ -19,12 +26,21 @@ importers:
       '@firewall/evm-analyzer':
         specifier: workspace:*
         version: link:../../packages/evm-analyzer
+      '@firewall/genlayer-client':
+        specifier: workspace:*
+        version: link:../../packages/genlayer-client
+      '@firewall/governance-adapters':
+        specifier: workspace:*
+        version: link:../../packages/governance-adapters
       '@firewall/indexer':
         specifier: workspace:*
         version: link:../../packages/indexer
       '@firewall/policy-engine':
         specifier: workspace:*
         version: link:../../packages/policy-engine
+      '@firewall/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       zod:
         specifier: 3.25.76
         version: 3.25.76
@@ -38,6 +54,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.7.0)(tsx@4.20.5)
 
   apps/web:
     dependencies:
@@ -46,7 +65,7 @@ importers:
         version: link:../../packages/domain
       next:
         specifier: 15.5.6
-        version: 15.5.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        version: 15.5.6(@playwright/test@1.51.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react:
         specifier: 19.1.1
         version: 19.1.1
@@ -139,9 +158,15 @@ importers:
         specifier: 2.21.54
         version: 2.21.54(typescript@5.9.2)(zod@3.25.76)
     devDependencies:
+      '@types/node':
+        specifier: 24.7.0
+        version: 24.7.0
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.7.0)(tsx@4.20.5)
 
   packages/governance-adapters:
     dependencies:
@@ -158,6 +183,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.7.0)(tsx@4.20.5)
 
   packages/indexer:
     dependencies:
@@ -751,6 +779,11 @@ packages:
     resolution: {integrity: sha512-pq5D8h10hHBjyqX+cfBm0i8JUXJ0UhczFc4r74zbuT9XgewFo2E3J1cOaGtdZynILNmQ685YWGzGE1Zv6io50w==}
     engines: {node: ^14.21.3 || >=16}
 
+  '@playwright/test@1.51.1':
+    resolution: {integrity: sha512-nM+kEaTSAoVlXmMPH10017vn3FSiFqr/bh4fKg9vmAdMfd9SDqRZNvPSiAHADc/itWak+qPvMPZQOPwCBW7k7Q==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@rollup/rollup-android-arm-eabi@4.64.0':
     resolution: {integrity: sha512-FLLpX941CD/7aBvX3GqLGBM9OvY5PGXTryPJkG5r5/OuBpZpV5k45Uo3RxAvqd35tsyc3hH1bhtz921IKzoIzg==}
     cpu: [arm]
@@ -1038,6 +1071,11 @@ packages:
       picomatch:
         optional: true
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1111,6 +1149,16 @@ packages:
   picomatch@4.0.7:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
+
+  playwright-core@1.51.1:
+    resolution: {integrity: sha512-/crRMj8+j/Nq5s8QcvegseuyeZPxpQCZb6HNk3Sos3BlZyAknRjoyJPFWkpNn8v0+P3WiwqFF8P+zQo4eqiNuw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.51.1:
+    resolution: {integrity: sha512-kkx+MB2KQRkyxjYPc3a0wLZZoDczmppyGJIvQ43l+aZihkaVvmu/21kiyaHeHjiFxjxNNFnUncKmcGIyOojsaw==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   postcss@8.4.31:
     resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
@@ -1621,6 +1669,10 @@ snapshots:
 
   '@noble/hashes@1.6.1': {}
 
+  '@playwright/test@1.51.1':
+    dependencies:
+      playwright: 1.51.1
+
   '@rollup/rollup-android-arm-eabi@4.64.0':
     optional: true
 
@@ -1886,6 +1938,9 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.7
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -1909,7 +1964,7 @@ snapshots:
 
   nanoid@3.3.19: {}
 
-  next@15.5.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+  next@15.5.6(@playwright/test@1.51.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
       '@next/env': 15.5.6
       '@swc/helpers': 0.5.15
@@ -1927,6 +1982,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 15.5.6
       '@next/swc-win32-arm64-msvc': 15.5.6
       '@next/swc-win32-x64-msvc': 15.5.6
+      '@playwright/test': 1.51.1
       sharp: 0.34.5
     transitivePeerDependencies:
       - '@babel/core'
@@ -1953,6 +2009,14 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@4.0.7: {}
+
+  playwright-core@1.51.1: {}
+
+  playwright@1.51.1:
+    dependencies:
+      playwright-core: 1.51.1
+    optionalDependencies:
+      fsevents: 2.3.2
 
   postcss@8.4.31:
     dependencies:

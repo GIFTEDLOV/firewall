@@ -1,31 +1,28 @@
-# Firewall state machine
+# State machine
 
-The smallest Gate 1 lifecycle is:
+The protocol uses separate append-only records and the smallest useful gates:
 
 ```text
-MANDATE_DRAFT ──freeze──> MANDATE_FROZEN
-                                │
-                                └─ commit exact package ──> EXECUTION_COMMITTED
-                                                               │
-                                                               └─ authenticate evidence ──> EVIDENCE_AUTHENTICATED
-                                                                                              │
-                                                                                              └─ record generation ──> ADJUDICATED
-                                                                                                                        │
-                                                                                               ┌────────────────────────┴──────────────────────┐
-                                                                                               v                                               v
-                                                                                   EXECUTION_PERMITTED                                  EXECUTION_BLOCKED
-                                                                                               │
-                                                                                               └─ issue exact permit ──> PERMIT_ACTIVE
+MANDATE_DRAFT -> MANDATE_FROZEN
+EXECUTION_COMMITTED -> EVIDENCE_AUTHENTICATED -> ADJUDICATED
+ADJUDICATED -> (EXECUTION_PERMITTED | EXECUTION_BLOCKED | INCONCLUSIVE)
+PERMIT_NONE -> PERMIT_ISSUED -> PERMIT_EXPIRED
 ```
 
-`INCONCLUSIVE` is an adjudication verdict caused by insufficient evidence; it is not a permit and cannot transition to `PERMIT_ACTIVE`.
+`adjudicate_execution` requires a frozen mandate, a committed execution, an
+authenticated exact evidence hash, and generation zero. It creates exactly one
+generation-one append-only adjudication. New execution facts require a new
+execution identity; result shopping is not a supported transition.
 
-## Invariants
+`issue_permit` requires the exact execution, matching adjudication generation,
+`EXECUTION_PERMITTED`, and the fixed semantic schema. It derives expiry as
+`issued_at + 86400`; the caller cannot choose expiry or alter the protected
+binding fields.
 
-- A mandate's constraints and identity are immutable after freeze.
-- An execution's bundle hash is immutable after commit.
-- Evidence explicitly binds mandate, execution, proposal identity, source, authority, content digest, byte length, chain, code/implementation facts, ABI provenance, freshness, and schema.
-- Adjudication generations increase monotonically and are append-only.
-- A permit is bound to the exact execution package, target/code/implementation hashes, semantic schema, adjudication generation, and expiry.
-- A changed execution-relevant fact produces a different bundle/binding hash and cannot use the prior permit.
-- Finalized transaction state is not execution success; execution result must be checked and then canonical state read back.
+The following attacks are rejected by state guards: early adjudication, early
+permit, double freeze, duplicate execution commit replacement, evidence
+overwrite, duplicate same-generation adjudication, generation rollback,
+cross-execution adjudication, cross-mandate permit, and terminal history
+mutation. Finalization of a transaction is never treated as execution success;
+the transaction journal separately requires execution result and canonical
+readback.

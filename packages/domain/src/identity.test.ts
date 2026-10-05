@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { executionBundleHash, mandateIdentityHash, proposalIdentityHash } from "./identity.js";
+import { executionBundleHash, mandateIdentityHash, permitBindingHash, permitBindsExactFacts, proposalIdentityHash } from "./identity.js";
 import type { ExecutionPackage, MandateConstraints, ProposalIdentity } from "./schemas.js";
 
 const constraints: MandateConstraints = {
@@ -80,5 +80,33 @@ describe("identity bindings", () => {
     const base = { mandateId: "MAN-00000001" as const, chainId: 1, targets: [target], operations: [{ order: 0, targetIndex: 0, kind: "CALL" as const }] };
     const changed: ExecutionPackage["targets"][number] = { ...target, calldata: "0x1234567800" };
     expect(executionBundleHash(base)).not.toEqual(executionBundleHash({ ...base, targets: [changed] }));
+  });
+
+  it("invalidates a permit binding for every protected fact", () => {
+    const facts = {
+      mandateId: "MAN-00000001", mandateVersion: 1,
+      proposalHash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      executionId: "EXE-00000001", executionBundleHash: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      chainId: 1, targetsDigest: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      valuesDigest: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      calldataDigest: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      targetCodeHashesDigest: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      implementationHashesDigest: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      adjudicationId: "ADJ-00000001", adjudicationGeneration: 1,
+      semanticSchema: "FIREWALL_MANDATE_V1", issuedAt: "2026-10-05T00:00:00.000Z", expiresAt: "2026-10-06T00:00:00.000Z",
+    } as const;
+    const permit = { permitId: "PRM-00000001", ...facts, permitBindingHash: permitBindingHash(facts), status: "ACTIVE" } as never;
+    expect(permitBindsExactFacts(permit, facts)).toBe(true);
+    const mutations = [
+      ["mandateId", "MAN-00000002"], ["mandateVersion", 2], ["proposalHash", "0x2222222222222222222222222222222222222222222222222222222222222222"],
+      ["executionId", "EXE-00000002"], ["executionBundleHash", "0x2222222222222222222222222222222222222222222222222222222222222222"], ["chainId", 2],
+      ["targetsDigest", "0x2222222222222222222222222222222222222222222222222222222222222222"], ["valuesDigest", "0x2222222222222222222222222222222222222222222222222222222222222222"], ["calldataDigest", "0x2222222222222222222222222222222222222222222222222222222222222222"],
+      ["targetCodeHashesDigest", "0x2222222222222222222222222222222222222222222222222222222222222222"], ["implementationHashesDigest", "0x2222222222222222222222222222222222222222222222222222222222222222"],
+      ["adjudicationId", "ADJ-00000002"], ["adjudicationGeneration", 2], ["semanticSchema", "FIREWALL_MANDATE_V2"],
+      ["issuedAt", "2026-10-05T01:00:00.000Z"], ["expiresAt", "2026-10-06T01:00:00.000Z"],
+    ] as const;
+    for (const [key, value] of mutations) {
+      expect(permitBindsExactFacts(permit, { ...facts, [key]: value } as never)).toBe(false);
+    }
   });
 });

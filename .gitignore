@@ -2,6 +2,7 @@ node_modules/
 .next/
 dist/
 coverage/
+test-results/
 .turbo/
 *.log
 *.tsbuildinfo
@@ -13,4 +14,5 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 artifacts/*.coverage.json
+artifacts/local-*.json
 provenance/local-*

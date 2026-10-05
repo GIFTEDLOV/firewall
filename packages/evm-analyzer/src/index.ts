@@ -3,7 +3,7 @@ import { executionBundleHash, ExecutionPackageSchema, type ExecutionPackage, typ
 import { compareHex, hashCanonical, type CanonicalValue } from "@firewall/shared";
 
 export const EIP1967_IMPLEMENTATION_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc" as const;
-export const EIP1967_ADMIN_SLOT = "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6d3d8e4f4f3b1c" as const;
+export const EIP1967_ADMIN_SLOT = "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103" as const;
 
 export const KNOWN_SELECTORS = {
   transfer: "0xa9059cbb",
@@ -18,6 +18,13 @@ export const KNOWN_SELECTORS = {
   proxyAdminUpgrade: "0x99a88ec4",
   proxyAdminUpgradeAndCall: "0x9623609d",
   mint: "0x40c10f19",
+  burn: "0x42966c68",
+  burnFrom: "0x79cc6790",
+  grantRole: "0x2f2ff15d",
+  revokeRole: "0xd547741f",
+  renounceRole: "0x36568abe",
+  hasRole: "0x91d14854",
+  changeAdmin: "0x8f283970",
   pause: "0x8456cb59",
   unpause: "0x3f4ba83a",
 } as const;
@@ -31,6 +38,7 @@ export type ProxyFacts = {
   readonly beaconAddress?: `0x${string}` | null;
   readonly codeHash?: `0x${string}` | null;
   readonly bytecodeLength?: number | null;
+  readonly bytecode?: Hex;
 };
 
 export type AnalyzeCallInput = {
@@ -50,6 +58,28 @@ export type AnalyzerAssessment = {
   readonly dangerousCapabilitiesPresent: boolean;
   readonly unknowns: string[];
   readonly evidenceSufficient: boolean;
+  readonly analysisCompleteForKnownFields: boolean;
+  readonly unknownSelectorCount: number;
+  readonly unknownTargetCount: number;
+  readonly unverifiedAbiCount: number;
+};
+
+export type DeterministicBlockReason =
+  | "CHAIN_MISMATCH"
+  | "FORBIDDEN_TARGET"
+  | "TARGET_NOT_ALLOWLISTED"
+  | "NATIVE_VALUE_EXCEEDS_CAP"
+  | "VALUE_TRANSFER_FORBIDDEN"
+  | "FORBIDDEN_SELECTOR"
+  | "OWNERSHIP_TRANSFER"
+  | "ADMIN_AUTHORITY_CHANGE"
+  | "UPGRADE_OUTSIDE_SCOPE"
+  | "UNKNOWN_BEHAVIOR";
+
+export type DeterministicViolationReport = {
+  readonly hardBlock: boolean;
+  readonly reasons: readonly DeterministicBlockReason[];
+  readonly unknowns: readonly string[];
 };
 
 function selectorName(selector: string | null): Selector | null {
@@ -90,6 +120,19 @@ function capabilitiesFor(selector: Hex | null): ExecutionTarget["dangerousCapabi
       return ["UPGRADE", "ADMIN_AUTHORITY_CHANGE"];
     case KNOWN_SELECTORS.mint:
       return ["MINT_AUTHORITY"];
+    case KNOWN_SELECTORS.burn:
+    case KNOWN_SELECTORS.burnFrom:
+      return ["BURN_OPERATION"];
+    case KNOWN_SELECTORS.grantRole:
+      return ["ROLE_GRANT", "ADMIN_AUTHORITY_CHANGE"];
+    case KNOWN_SELECTORS.revokeRole:
+    case KNOWN_SELECTORS.renounceRole:
+      return ["ROLE_REVOKE", "ADMIN_AUTHORITY_CHANGE"];
+    case KNOWN_SELECTORS.changeAdmin:
+      return ["ADMIN_CHANGE", "ADMIN_AUTHORITY_CHANGE"];
+    case KNOWN_SELECTORS.pause:
+    case KNOWN_SELECTORS.unpause:
+      return ["PAUSE_OPERATION"];
     case KNOWN_SELECTORS.transfer:
     case KNOWN_SELECTORS.transferFrom:
       return ["TREASURY_TRANSFER"];
@@ -139,6 +182,7 @@ export function analyzeCall(input: AnalyzeCallInput): ExecutionTarget {
   if (input.proxyFacts?.implementationAddress && !input.proxyFacts.implementationCodeHash) unknowns.push("IMPLEMENTATION_CODE_HASH_UNAVAILABLE");
   const caps = capabilitiesFor(selector);
   if (known === null) caps.push("UNKNOWN_RUNTIME_BEHAVIOR");
+  unknowns.push(...scanBytecodeFlags(input.proxyFacts?.bytecode));
   return {
     address: input.address,
     codeHash: input.proxyFacts?.codeHash ?? null,
@@ -157,7 +201,18 @@ export function analyzeCall(input: AnalyzeCallInput): ExecutionTarget {
   };
 }
 
-export function analyzeExecutionPackage(input: Omit<ExecutionPackage, "bundleHash" | "calldataValueDigest" | "state"> & { targets: AnalyzeCallInput[] }): ExecutionPackage {
+export function scanBytecodeFlags(bytecode: Hex | undefined): string[] {
+  if (!bytecode) return [];
+  const flags: string[] = [];
+  const body = bytecode.slice(2).toLowerCase();
+  if (body.includes("f4")) flags.push("DELEGATECALL_VISIBLE");
+  if (body.includes("f0")) flags.push("CREATE_VISIBLE");
+  if (body.includes("fb")) flags.push("CREATE2_VISIBLE");
+  if (body.includes("ff")) flags.push("SELFDESTRUCT_VISIBLE");
+  return flags;
+}
+
+export function analyzeExecutionPackage(input: Omit<ExecutionPackage, "targets" | "bundleHash" | "calldataValueDigest" | "state"> & { targets: AnalyzeCallInput[] }): ExecutionPackage {
   const targets = input.targets.map(analyzeCall);
   const operations = input.operations;
   const bundleHash = executionBundleHash({ mandateId: input.mandateId, chainId: input.chainId, targets, operations });
@@ -187,7 +242,35 @@ export function compareExecutionToMandate(mandate: Mandate, candidate: Execution
     dangerousCapabilitiesPresent,
     unknowns,
     evidenceSufficient: unknowns.length === 0 && candidate.targets.every((target) => target.codeHash !== null),
+    analysisCompleteForKnownFields: unknowns.length === 0,
+    unknownSelectorCount: candidate.targets.filter((target) => target.unknowns.includes("ABI_UNAVAILABLE") || target.unknowns.includes("CALLDATA_SELECTOR_MISSING")).length,
+    unknownTargetCount: candidate.targets.filter((target) => target.codeHash === null).length,
+    unverifiedAbiCount: candidate.targets.filter((target) => target.knownAbiProvenance.source === "NONE" || target.knownAbiProvenance.source === "OPERATOR_SUPPLIED").length,
   };
+}
+
+export function detectDeterministicViolations(mandate: Mandate, candidate: ExecutionPackage): DeterministicViolationReport {
+  const reasons = new Set<DeterministicBlockReason>();
+  const unknowns: string[] = [];
+  if (candidate.chainId !== mandate.governanceChainId) reasons.add("CHAIN_MISMATCH");
+  const allowedTargets = new Set(mandate.constraints.allowedTargets.map((address) => address.toLowerCase()));
+  const forbiddenTargets = new Set(mandate.constraints.forbiddenTargets.map((address) => address.toLowerCase()));
+  const allowedSelectors = new Set(mandate.constraints.allowedSelectors.map((selector) => selector.toLowerCase()));
+  for (const target of candidate.targets) {
+    const address = target.address.toLowerCase();
+    if (forbiddenTargets.has(address)) reasons.add("FORBIDDEN_TARGET");
+    if (allowedTargets.size > 0 && !allowedTargets.has(address)) reasons.add("TARGET_NOT_ALLOWLISTED");
+    if (target.selector === null || target.dangerousCapabilities.includes("UNKNOWN_SELECTOR") || target.dangerousCapabilities.includes("UNKNOWN_RUNTIME_BEHAVIOR")) {
+      unknowns.push(`${address}:UNKNOWN_BEHAVIOR`);
+    }
+    if (target.selector && allowedSelectors.size > 0 && !allowedSelectors.has(target.selector.toLowerCase())) reasons.add("FORBIDDEN_SELECTOR");
+    if (BigInt(target.nativeValue) > 0n && mandate.constraints.allowedValueTransfer === "NONE") reasons.add("VALUE_TRANSFER_FORBIDDEN");
+    if (mandate.constraints.maximumValue !== null && BigInt(target.nativeValue) > BigInt(mandate.constraints.maximumValue)) reasons.add("NATIVE_VALUE_EXCEEDS_CAP");
+    if (target.dangerousCapabilities.includes("OWNERSHIP_CHANGE")) reasons.add("OWNERSHIP_TRANSFER");
+    if (target.dangerousCapabilities.includes("ADMIN_AUTHORITY_CHANGE")) reasons.add("ADMIN_AUTHORITY_CHANGE");
+    if (target.dangerousCapabilities.includes("UPGRADE") && mandate.constraints.protectedUpgradeScope) reasons.add("UPGRADE_OUTSIDE_SCOPE");
+  }
+  return { hardBlock: reasons.size > 0, reasons: [...reasons], unknowns };
 }
 
 export function eip1967ImplementationSlot(): `0x${string}` {

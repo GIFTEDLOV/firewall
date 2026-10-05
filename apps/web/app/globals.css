@@ -77,6 +77,25 @@ h3 { font-size: 14px; letter-spacing: .02em; }
 .callout { border-left: 3px solid var(--warn); padding: 13px 16px; background: #17140f; color: #c9b99f; font-size: 12px; line-height: 1.6; }
 .detail-id { color: var(--info); font-family: "SFMono-Regular", Consolas, monospace; }
 .footer-note { color: var(--muted); font-size: 11px; margin-top: 28px; }
+.form-stack { display: grid; gap: 16px; }
+.form-stack label { display: grid; gap: 8px; color: var(--muted); font-size: 12px; }
+.form-stack input, .form-stack textarea { width: 100%; border: 1px solid var(--line); background: #0b0e12; color: var(--text); padding: 11px 12px; border-radius: 0; }
+.form-stack textarea { resize: vertical; line-height: 1.5; }
+.form-stack button:disabled { opacity: .45; cursor: not-allowed; }
+.result-link { color: var(--info); }
+.detail-grid { display: grid; gap: 16px; }
+.detail-grid > div { display: grid; gap: 7px; }
+.field-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+.detail-grid pre { overflow: auto; padding: 14px; background: #0b0e12; border: 1px solid var(--line); color: var(--muted); font: 11px/1.5 "SFMono-Regular", Consolas, monospace; }
+.diff-meta { display: flex; justify-content: space-between; gap: 14px; padding: 14px 18px; color: var(--muted); font: 10px "SFMono-Regular", Consolas, monospace; border-bottom: 1px solid var(--line); overflow: auto; }
+.target-row { display: grid; gap: 7px; padding: 14px 16px; border-bottom: 1px solid #1d252c; font-size: 11px; }
+.target-row code { overflow-wrap: anywhere; color: var(--info); font: 10px "SFMono-Regular", Consolas, monospace; }
+.target-row span { color: var(--muted); }
+.target-row .danger { color: var(--danger); }
+.target-row .warn { color: var(--warn); }
+.fixture-verdict { padding: 26px 20px; font: 700 24px "SFMono-Regular", Consolas, monospace; letter-spacing: .04em; }
+.fixture-verdict.permitted { color: var(--accent); }
+.fixture-verdict.blocked { color: var(--danger); }
 
 @media (max-width: 860px) {
   .topbar { padding: 0 18px; gap: 18px; }

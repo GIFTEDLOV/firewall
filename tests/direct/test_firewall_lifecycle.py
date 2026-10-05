@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 
@@ -5,46 +7,104 @@ def digest(byte: int) -> bytes:
     return bytes([byte]) * 32
 
 
-def test_direct_mode_freeze_commit_adjudicate_and_permit(direct_deploy):
-    firewall = direct_deploy("contracts/firewall.py")
+def semantic(**overrides):
+    result = {
+        "intent_satisfied": True,
+        "scope_expanded": False,
+        "prohibited_effect_present": False,
+        "economic_terms_consistent": True,
+        "administrative_authority_changed": False,
+        "implementation_behavior_consistent": True,
+        "evidence_sufficient": True,
+    }
+    result.update(overrides)
+    return json.dumps(result, separators=(",", ":"))
 
-    assert firewall.get_semantic_schema() == "FIREWALL_MANDATE_V1"
-    mandate_id = firewall.create_mandate(61127, digest(1), digest(2), 1, digest(3))
-    assert mandate_id == "MAN-00000001"
+
+def create_and_commit(firewall):
+    text = "Upgrade TreasuryVault to add batched withdrawals. No new administrator authority."
+    mandate_id = firewall.create_mandate(
+        61127, "0x" + "1" * 40, "proposal-1", digest(1),
+        "https://governance.example/proposals/1", text, digest(2), len(text.encode()), 1, digest(3),
+    )
     firewall.freeze_mandate(mandate_id, 100)
-    assert firewall.get_mandates()[0].state == "MANDATE_FROZEN"
+    execution_id = firewall.commit_execution(
+        mandate_id, 61127, digest(4), digest(5), digest(6), digest(7), digest(8), digest(9), digest(10), digest(11),
+        "CONTROLLED_FIXTURE_EXECUTION_A",
+    )
+    firewall.authenticate_evidence(execution_id, digest(11), digest(12), digest(13), digest(14), 32, "FIREWALL_EVIDENCE_V1", 105)
+    return mandate_id, execution_id
 
-    execution_id = firewall.commit_execution(mandate_id, 1, digest(4), digest(5), digest(6), digest(7))
-    firewall.authenticate_evidence(execution_id, digest(8))
-    adjudication_id = firewall.record_adjudication(execution_id, 1, True, False, False, True, False, True, True, 110)
+
+def test_direct_mode_adjudication_is_consensus_selected_and_permit_is_deterministic(direct_vm, direct_deploy):
+    firewall = direct_deploy("contracts/firewall.py")
+    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", semantic())
+    mandate_id, execution_id = create_and_commit(firewall)
+    adjudication_id = firewall.adjudicate_execution(execution_id)
     assert adjudication_id == "ADJ-00000001"
     assert firewall.get_adjudications()[0].verdict == "EXECUTION_PERMITTED"
-
-    permit_id = firewall.issue_permit(execution_id, adjudication_id, 1, digest(1), digest(5), digest(6), digest(7), 120, 220, digest(9))
+    permit_id = firewall.issue_permit(execution_id, adjudication_id, 120, digest(13))
     assert permit_id == "PRM-00000001"
     permit = firewall.get_permits()[0]
     assert permit.status == "ACTIVE"
     assert permit.execution_id == execution_id
+    assert permit.expires_at == 120 + 86400
 
 
-def test_direct_mode_evidence_insufficient_is_inconclusive(direct_deploy):
+def test_direct_mode_insufficient_evidence_is_inconclusive_and_cannot_issue_permit(direct_vm, direct_deploy):
     firewall = direct_deploy("contracts/firewall.py")
-    mandate_id = firewall.create_mandate(61127, digest(1), digest(2), 1, digest(3))
-    firewall.freeze_mandate(mandate_id, 100)
-    execution_id = firewall.commit_execution(mandate_id, 1, digest(4), digest(5), digest(6), digest(7))
-    firewall.authenticate_evidence(execution_id, digest(8))
-    adjudication_id = firewall.record_adjudication(execution_id, 1, True, False, False, True, False, True, False, 110)
+    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", semantic(evidence_sufficient=False))
+    _, execution_id = create_and_commit(firewall)
+    adjudication_id = firewall.adjudicate_execution(execution_id)
     assert firewall.get_adjudications()[0].verdict == "INCONCLUSIVE"
     with pytest.raises(Exception):
-        firewall.issue_permit(execution_id, adjudication_id, 1, digest(1), digest(5), digest(6), digest(7), 120, 220, digest(9))
+        firewall.issue_permit(execution_id, adjudication_id, 120, digest(13))
 
 
-def test_direct_mode_generation_is_monotonic(direct_deploy):
+def test_direct_mode_caller_cannot_supply_semantic_vector_or_repeat_generation(direct_vm, direct_deploy):
     firewall = direct_deploy("contracts/firewall.py")
-    mandate_id = firewall.create_mandate(61127, digest(1), digest(2), 1, digest(3))
-    firewall.freeze_mandate(mandate_id, 100)
-    execution_id = firewall.commit_execution(mandate_id, 1, digest(4), digest(5), digest(6), digest(7))
-    firewall.authenticate_evidence(execution_id, digest(8))
-    firewall.record_adjudication(execution_id, 1, True, False, False, True, False, True, True, 110)
+    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", semantic(scope_expanded=True))
+    _, execution_id = create_and_commit(firewall)
+    adjudication_id = firewall.adjudicate_execution(execution_id)
+    assert firewall.get_adjudications()[0].verdict == "EXECUTION_BLOCKED"
     with pytest.raises(Exception):
-        firewall.record_adjudication(execution_id, 1, True, False, False, True, False, True, True, 111)
+        firewall.adjudicate_execution(execution_id)
+    assert not hasattr(firewall, "record_adjudication")
+    with pytest.raises(Exception):
+        firewall.issue_permit(execution_id, adjudication_id, 120, digest(13))
+
+
+def test_direct_mode_only_mandate_creator_can_freeze_and_owner_is_not_global(direct_vm, direct_deploy, direct_alice):
+    firewall = direct_deploy("contracts/firewall.py")
+    text = "A mandate"
+    mandate_id = firewall.create_mandate(61127, "0x" + "1" * 40, "proposal-2", digest(21), "https://governance.example/2", text, digest(22), len(text), 1, digest(23))
+    direct_vm.sender = direct_alice
+    with pytest.raises(Exception):
+        firewall.freeze_mandate(mandate_id, 1)
+
+
+def test_direct_mode_rejects_extra_or_malformed_semantic_output(direct_vm, direct_deploy):
+    firewall = direct_deploy("contracts/firewall.py")
+    _, execution_id = create_and_commit(firewall)
+    invalid = json.dumps({**json.loads(semantic()), "fake_permit": True})
+    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", invalid)
+    with pytest.raises(Exception):
+        firewall.adjudicate_execution(execution_id)
+    assert len(firewall.get_adjudications()) == 0
+
+
+def test_direct_mode_rejects_early_permit_double_freeze_and_evidence_overwrite(direct_vm, direct_deploy):
+    firewall = direct_deploy("contracts/firewall.py")
+    text = "A mandate"
+    mandate_id = firewall.create_mandate(61127, "0x" + "1" * 40, "proposal-early", digest(31), "https://governance.example/early", text, digest(32), len(text), 1, digest(33))
+    with pytest.raises(Exception):
+        firewall.commit_execution(mandate_id, 61127, digest(34), digest(35), digest(36), digest(37), digest(38), digest(39), digest(40), digest(41), "early")
+    firewall.freeze_mandate(mandate_id, 1)
+    with pytest.raises(Exception):
+        firewall.freeze_mandate(mandate_id, 2)
+    execution_id = firewall.commit_execution(mandate_id, 61127, digest(34), digest(35), digest(36), digest(37), digest(38), digest(39), digest(40), digest(41), "committed")
+    with pytest.raises(Exception):
+        firewall.issue_permit(execution_id, "ADJ-00000001", 2, digest(45))
+    firewall.authenticate_evidence(execution_id, digest(41), digest(42), digest(43), digest(44), 32, "FIREWALL_EVIDENCE_V1", 3)
+    with pytest.raises(Exception):
+        firewall.authenticate_evidence(execution_id, digest(41), digest(42), digest(43), digest(44), 32, "FIREWALL_EVIDENCE_V1", 4)

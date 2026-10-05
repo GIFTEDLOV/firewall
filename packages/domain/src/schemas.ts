@@ -97,7 +97,15 @@ export const ExecutionTargetSchema = z.object({
     "ADMIN_AUTHORITY_CHANGE",
     "UPGRADE",
     "MINT_AUTHORITY",
+    "BURN_OPERATION",
+    "ROLE_GRANT",
+    "ROLE_REVOKE",
+    "PAUSE_OPERATION",
+    "ADMIN_CHANGE",
     "TREASURY_TRANSFER",
+    "DELEGATECALL",
+    "CREATE_CONTRACT",
+    "SELFDESTRUCT",
     "UNKNOWN_SELECTOR",
     "UNKNOWN_RUNTIME_BEHAVIOR",
   ])),
@@ -120,21 +128,29 @@ export const ExecutionPackageSchema = z.object({
   operations: z.array(ExecutionOperationSchema).min(1),
   bundleHash: Hash32Schema,
   calldataValueDigest: Hash32Schema,
+  valuesDigest: Hash32Schema.optional(),
+  targetSetDigest: Hash32Schema.optional(),
+  selectorSetDigest: Hash32Schema.optional(),
   importedAt: TimestampSchema,
   state: ExecutionPackageStateSchema,
 }).strict();
 
 export const EvidenceEntrySchema = z.object({
   evidenceId: z.string().min(1),
-  authority: z.string().min(1),
-  sourceUrl: z.string().url(),
+  authorityType: z.enum(["GOVERNANCE_CONTRACT", "EXECUTION_TARGET", "RPC_PROVIDER", "VERIFIED_SOURCE", "SAFE", "MANUAL_OPERATOR"]),
+  authorityId: z.string().min(1),
+  sourceUri: z.string().url(),
+  sourceHost: z.string().min(1).nullable(),
   chainId: ChainIdSchema,
   proposalIdentityHash: Hash32Schema,
   executionId: EntityIdSchemas.execution,
-  sha256: Hash32Schema,
-  byteLength: z.number().int().nonnegative().safe(),
+  contentSha256: Hash32Schema,
+  exactByteLength: z.number().int().nonnegative().safe(),
   codeHash: Hash32Schema.nullable(),
-  implementationHash: Hash32Schema.nullable(),
+  implementationAddress: AddressSchema.nullable(),
+  implementationCodeHash: Hash32Schema.nullable(),
+  blockNumber: UIntStringSchema.nullable(),
+  blockHash: Hash32Schema.nullable(),
   abiProvenance: AbiProvenanceSchema,
   capturedAt: TimestampSchema,
   freshnessExpiresAt: TimestampSchema.nullable(),
@@ -152,7 +168,7 @@ export const EvidenceBundleSchema = z.object({
   schemaVersion: z.literal("FIREWALL_EVIDENCE_V1"),
   bundleHash: Hash32Schema,
   authenticatedAt: TimestampSchema.nullable(),
-  status: z.enum(["UNAUTHENTICATED", "AUTHENTICATED", "SOURCE_UNAVAILABLE", "EVIDENCE_MISMATCH"]),
+  status: z.enum(["PENDING", "AUTHENTICATED", "SOURCE_UNAVAILABLE", "EVIDENCE_MISMATCH"]),
 }).strict();
 
 export const SemanticSchemaVersionSchema = z.literal("FIREWALL_MANDATE_V1");
@@ -189,10 +205,11 @@ export const PermitSchema = z.object({
   executionId: EntityIdSchemas.execution,
   executionBundleHash: Hash32Schema,
   chainId: ChainIdSchema,
-  targetAddresses: z.array(AddressSchema),
-  calldataValueDigest: Hash32Schema,
-  targetCodeHashes: z.array(Hash32Schema.nullable()),
-  implementationHashes: z.array(Hash32Schema.nullable()),
+  targetsDigest: Hash32Schema,
+  valuesDigest: Hash32Schema,
+  calldataDigest: Hash32Schema,
+  targetCodeHashesDigest: Hash32Schema,
+  implementationHashesDigest: Hash32Schema,
   adjudicationId: EntityIdSchemas.adjudication,
   adjudicationGeneration: z.number().int().positive().safe(),
   semanticSchema: SemanticSchemaVersionSchema,
@@ -214,3 +231,5 @@ export type SemanticResult = z.infer<typeof SemanticResultSchema>;
 export type Verdict = z.infer<typeof VerdictSchema>;
 export type Adjudication = z.infer<typeof AdjudicationSchema>;
 export type Permit = z.infer<typeof PermitSchema>;
+
+export const EvidenceStatusSchema = z.enum(["PENDING", "AUTHENTICATED", "SOURCE_UNAVAILABLE", "EVIDENCE_MISMATCH"]);
