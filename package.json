@@ -1,0 +1,25 @@
+{
+  "name": "firewall",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.0.9",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
+  },
+  "engines": {
+    "node": ">=24.14.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:ts": "pnpm --filter @firewall/domain test && pnpm --filter @firewall/evidence test && pnpm --filter @firewall/policy-engine test && pnpm --filter @firewall/evm-analyzer test",
+    "lint:contract": "python scripts/contract_ast_lint.py contracts/firewall.py",
+    "schema:contract": "python scripts/extract_genlayer_schema.py contracts/firewall.py artifacts/firewall.abi.json",
+    "test:direct": "python scripts/run_direct_tests.py",
+    "verify": "pnpm typecheck && pnpm test:ts && pnpm lint:contract && pnpm test:direct && pnpm schema:contract && pnpm --filter @firewall/web build",
+    "dev:web": "pnpm --filter @firewall/web dev",
+    "dev:api": "pnpm --filter @firewall/api dev"
+  }
+}
