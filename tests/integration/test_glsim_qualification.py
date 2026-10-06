@@ -59,7 +59,9 @@ def _sim_config(response: str) -> dict:
                 "plugin": "controlled-fixture",
                 "plugin_config": {
                     "mock_response": {
-                        "response": {"FIREWALL_SEMANTIC_TASK_V1": response},
+                        # The simulator fixture decodes one JSON layer. Preserve
+                        # the actual response_format="json" wire text for GenVM.
+                        "response": {"FIREWALL_SEMANTIC_TASK_V1": json.dumps(response)},
                     },
                 },
             }
@@ -128,6 +130,12 @@ def test_glsim_controlled_cases_are_consensus_and_readback_bound(tmp_path, capsy
     deployment = client.get_transaction(deployment_tx_id)
     CONTRACT_ADDRESS = deployment.get("data", {}).get("contract_address") or deployment["to_address"]
     assert CONTRACT_ADDRESS not in {None, "0x" + "0" * 40}, deployment
+    assert _read(client, CONTRACT_ADDRESS, "get_semantic_schema") == "FIREWALL_MANDATE_V1"
+    assert _read(client, CONTRACT_ADDRESS, "get_semantic_keys") == [
+        "intent_satisfied", "scope_expanded", "prohibited_effect_present",
+        "economic_terms_consistent", "administrative_authority_changed",
+        "implementation_behavior_consistent", "evidence_sufficient",
+    ]
 
     mandate_text = (
         "Upgrade TreasuryVault to add batched withdrawals. "

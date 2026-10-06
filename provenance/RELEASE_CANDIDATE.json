@@ -1,18 +1,18 @@
 {
   "format": "FIREWALL_RELEASE_CANDIDATE_V1",
-  "status": "LOCAL_RELEASE_CANDIDATE",
+  "status": "LOCAL_CANDIDATE_QUALIFIED_AWAITING_DEPLOYMENT_AUTHORIZATION",
   "workspace": "C:\\Users\\DELL\\Firewall",
-  "starting_head": "1f622c9cf9674fd806032c8374ef21ddba1eb815",
+  "starting_head": "1c3cb93d5764ad74ad50104ddae23926e973c32a",
   "release_head": null,
   "source_hashes": {
-    "contract_sha256": "3aa5832d0686069ee0d08527e08c340aa50cbfe77336a65caf89ae36a644720b",
+    "contract_sha256": "1b94249f7f7e6194143627054a2189b533244c5184bf003d4192c127422f5722",
     "abi_sha256": "928b03e2f1c768794a95f2101609984673c8ac7118587cfe4d5ca4bfddfbaecc",
     "backend_release_id": "d87e62b73071888a2b91d97ee3abef09e1b5747bc3fca60cb1156d9ab3e75b71",
     "frontend_release_id": "7f3008b1ac5d8a63d62316a682d615543716c49a04e4ba474b98d5b4b9cd3e7a"
   },
   "genvm": {
-    "runner": "py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0",
-    "version": "v0.6.0-rc2",
+    "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+    "version": "v0.6.0-rc8",
     "lint": "PASS",
     "validate": "PASS",
     "check": "PASS",
@@ -26,9 +26,32 @@
     "chain_id": 61127,
     "rpc": "http://127.0.0.1:4010/api",
     "validators": 5,
-    "case_a": "EXECUTION_PERMITTED_WITH_BOUND_PERMIT",
-    "case_b": "EXECUTION_BLOCKED_WITH_NO_PERMIT",
+    "case_a": "EXECUTION_PERMITTED_WITH_BOUND_PERMIT; one adjudication",
+    "case_b": "EXECUTION_BLOCKED_WITH_NO_PERMIT; one adjudication",
     "result_shopping": false
+  },
+  "semantic_runtime_normalization": {
+    "response_format": "json",
+    "normalization": ["str", "UTF-8 bytes", "dict", "object.calldata", "callable object.get()"],
+    "strict_semantic_parser_weakened": false,
+    "direct_tests": "PASS; 7 passed",
+    "adversarial_tests": "PASS; 3 passed",
+    "property_tests": "PASS; 2 passed",
+    "mutation_tests": "PASS; 15/15 mutations killed",
+    "studio_dev_readonly_schema": "PASS; 14 methods",
+    "contract_source_bytes": 16641
+  },
+  "deployment_3_preparation": {
+    "prepared": true,
+    "chain_id": 61997,
+    "rpc": "https://studio-dev.genlayer.com/api",
+    "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+    "args": [],
+    "user_value": "0",
+    "fee_value_wei": "100000000000010352",
+    "fee_value_nonzero": true,
+    "signed": false,
+    "broadcast": false
   },
   "external_writes": {
     "blockchain_writes": 0,
@@ -37,5 +60,5 @@
     "github_pushed": 0,
     "vercel_deployed": 0
   },
-  "release_head_note": "The final Git commit hash is recorded in the Gate 3 handoff after the single local freeze commit; no transaction hashes or addresses are embedded here."
+  "release_head_note": "The final local commit hash is reported in the handoff; release_head is left null to avoid a self-referential hash. No transaction hashes or addresses are embedded here."
 }

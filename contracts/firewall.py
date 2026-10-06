@@ -1,4 +1,5 @@
-# { "Depends": "py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
+
 """Firewall canonical adjudication boundary.
 
 Identity, lifecycle, evidence binding, and policy are deterministic. The only
@@ -22,6 +23,32 @@ SEMANTIC_KEYS = (
     "economic_terms_consistent", "administrative_authority_changed",
     "implementation_behavior_consistent", "evidence_sufficient",
 )
+
+
+def _resolve_prompt_output(raw: object) -> str | dict | None:
+    """Resolve only the response representations exposed by supported GenVM runtimes."""
+    def known_payload(value: object) -> str | dict | None:
+        if type(value) is str or type(value) is dict:
+            return value
+        if type(value) is bytes:
+            try:
+                return value.decode("utf-8")
+            except UnicodeDecodeError:
+                return None
+        return None
+
+    payload = known_payload(raw)
+    if payload is not None:
+        return payload
+    if hasattr(raw, "calldata"):
+        return known_payload(raw.calldata)
+    getter = getattr(raw, "get", None)
+    if callable(getter):
+        try:
+            return known_payload(getter())
+        except Exception:
+            return None
+    return None
 
 
 @allow_storage
@@ -207,10 +234,10 @@ class Firewall(gl.contract.Contract):
 
     def _semantic_consensus(self, prompt: str) -> dict:
         def ask() -> dict:
-            raw_text = gl.nondet.exec_prompt(prompt, response_format="text")
-            # json.loads rejects prose/markdown wrappers; the structural check
-            # below rejects missing, extra, null, numeric, and string booleans.
-            raw = raw_text if type(raw_text) is dict else json.loads(raw_text)
+            raw_output = gl.nondet.exec_prompt(prompt, response_format="json")
+            resolved = _resolve_prompt_output(raw_output)
+            # JSON decoding and the strict semantic shape check stay separate.
+            raw = resolved if type(resolved) is dict else json.loads(resolved)
             return self._parse_semantic_result(raw)
         return gl.eq_principle.strict_eq(ask)
 

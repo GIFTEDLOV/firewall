@@ -22,6 +22,12 @@ def semantic(**overrides):
     return json.dumps(result, separators=(",", ":"))
 
 
+def mock_semantic(direct_vm, response):
+    # wasi_mock parses one JSON layer; keep the inner response as text for the
+    # GenVM response_format="json" decoder, which parses that text itself.
+    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", json.dumps(response))
+
+
 def permit_binding_hash(firewall, execution_id, adjudication_id, issued_at):
     mandate = firewall.get_mandates()[0]
     execution = next(item for item in firewall.get_executions() if item.execution_id == execution_id)
@@ -55,7 +61,7 @@ def create_and_commit(firewall):
 
 def test_direct_mode_adjudication_is_consensus_selected_and_permit_is_deterministic(direct_vm, direct_deploy):
     firewall = direct_deploy("contracts/firewall.py")
-    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", semantic())
+    mock_semantic(direct_vm, semantic())
     mandate_id, execution_id = create_and_commit(firewall)
     adjudication_id = firewall.adjudicate_execution(execution_id)
     assert adjudication_id == "ADJ-00000001"
@@ -72,7 +78,7 @@ def test_direct_mode_adjudication_is_consensus_selected_and_permit_is_determinis
 
 def test_direct_mode_insufficient_evidence_is_inconclusive_and_cannot_issue_permit(direct_vm, direct_deploy):
     firewall = direct_deploy("contracts/firewall.py")
-    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", semantic(evidence_sufficient=False))
+    mock_semantic(direct_vm, semantic(evidence_sufficient=False))
     _, execution_id = create_and_commit(firewall)
     adjudication_id = firewall.adjudicate_execution(execution_id)
     assert firewall.get_adjudications()[0].verdict == "INCONCLUSIVE"
@@ -82,7 +88,7 @@ def test_direct_mode_insufficient_evidence_is_inconclusive_and_cannot_issue_perm
 
 def test_direct_mode_caller_cannot_supply_semantic_vector_or_repeat_generation(direct_vm, direct_deploy):
     firewall = direct_deploy("contracts/firewall.py")
-    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", semantic(scope_expanded=True))
+    mock_semantic(direct_vm, semantic(scope_expanded=True))
     _, execution_id = create_and_commit(firewall)
     adjudication_id = firewall.adjudicate_execution(execution_id)
     assert firewall.get_adjudications()[0].verdict == "EXECUTION_BLOCKED"
@@ -105,10 +111,22 @@ def test_direct_mode_only_mandate_creator_can_freeze_and_owner_is_not_global(dir
 def test_direct_mode_rejects_extra_or_malformed_semantic_output(direct_vm, direct_deploy):
     firewall = direct_deploy("contracts/firewall.py")
     _, execution_id = create_and_commit(firewall)
-    invalid = json.dumps({**json.loads(semantic()), "fake_permit": True})
-    direct_vm.mock_llm("FIREWALL_SEMANTIC_TASK_V1", invalid)
-    with pytest.raises(Exception):
-        firewall.adjudicate_execution(execution_id)
+    valid = json.loads(semantic())
+    invalid_outputs = [
+        "not-json",
+        "prefix " + semantic(),
+        "```json\n" + semantic() + "\n```",
+        json.dumps({**valid, "fake_permit": True}),
+        json.dumps({key: value for key, value in valid.items() if key != "intent_satisfied"}),
+        json.dumps({**valid, "intent_satisfied": "true"}),
+        json.dumps({**valid, "intent_satisfied": 1}),
+        json.dumps({**valid, "intent_satisfied": None}),
+        json.dumps({**valid, "intent_satisfied": {"value": True}}),
+    ]
+    for invalid in invalid_outputs:
+        mock_semantic(direct_vm, invalid)
+        with pytest.raises(Exception):
+            firewall.adjudicate_execution(execution_id)
     assert len(firewall.get_adjudications()) == 0
 
 
