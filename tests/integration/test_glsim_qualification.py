@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import time
 from urllib.parse import urlparse
 
 from eth_account import Account
@@ -69,6 +70,30 @@ def _sim_config(response: str) -> dict:
     }
 
 
+def _sim_config_split(first_response: str, second_response: str) -> dict:
+    def validator(response: str, stake: int) -> dict:
+        return {
+            "stake": stake,
+            "provider": "controlled-fixture",
+            "model": "controlled-fixture",
+            "config": {},
+            "plugin": "controlled-fixture",
+            "plugin_config": {"mock_response": {"response": {"FIREWALL_SEMANTIC_TASK_V1": json.dumps(response)}}},
+        }
+    return {"validators": [validator(first_response, 1), validator(second_response, 1)]}
+
+
+def _write_to_terminal(client: GenLayerClient, address: str, method: str, args: list, sim_config: dict) -> tuple[str, dict]:
+    tx_id = client.write_contract(address, method, args=args, sim_config=sim_config, leader_only=False)
+    deadline = time.monotonic() + 120
+    while time.monotonic() < deadline:
+        transaction = client.get_transaction(tx_id)
+        if transaction.get("lifecycle", {}).get("state") in {"finalized", "canceled"}:
+            return tx_id, transaction
+        time.sleep(0.25)
+    raise AssertionError(f"local GLSim transaction did not reach terminal state: {tx_id}")
+
+
 def _write(client: GenLayerClient, address: str, method: str, args: list, *, sim_config: dict | None = None):
     tx_id = client.write_contract(
         address,
@@ -111,7 +136,7 @@ def _permit_binding_hash(client: GenLayerClient, contract_address: str, executio
 
 def _read_result(client: GenLayerClient, contract_address: str, execution_id: str) -> dict:
     execution = next(item for item in _read(client, contract_address, "get_executions") if item["execution_id"] == execution_id)
-    adjudication = next(item for item in _read(client, contract_address, "get_adjudications") if item["execution_id"] == execution_id)
+    adjudication = next((item for item in _read(client, contract_address, "get_adjudications") if item["execution_id"] == execution_id), None)
     permits = [item for item in _read(client, contract_address, "get_permits") if item["execution_id"] == execution_id]
     return {"execution": execution, "adjudication": adjudication, "permits": permits}
 
@@ -202,10 +227,67 @@ def test_glsim_controlled_cases_are_consensus_and_readback_bound(tmp_path, capsy
     assert result_b["adjudication"]["administrative_authority_changed"] is True
     assert result_b["permits"] == []
 
+    # Case C: malformed semantic JSON must complete as nonbusiness state.
+    execution_c_args = [
+        mandate_id, 61127, _digest("bundle-c"), _digest("targets-c"), _digest("values-c"),
+        _digest("calldata-c"), _digest("facts-c"), _digest("target-code-c"), _digest("implementation-c"),
+        _digest("evidence-c"), "CONTROLLED_FIXTURE_EXECUTION_C: malformed semantic response",
+    ]
+    _, commit_c_tx = _write(client, CONTRACT_ADDRESS, "commit_execution", execution_c_args)
+    execution_c = _read(client, CONTRACT_ADDRESS, "get_executions")[2]["execution_id"]
+    _write(client, CONTRACT_ADDRESS, "authenticate_evidence", [
+        execution_c, _digest("evidence-c"), _digest("authority-c"), _digest("source-c"),
+        _digest("content-c"), 128, "FIREWALL_EVIDENCE_V1", 107,
+    ])
+    malformed = json.loads(_semantic_response())
+    del malformed["intent_satisfied"]
+    adjudicate_c_tx, transaction_c = _write_to_terminal(
+        client, CONTRACT_ADDRESS, "adjudicate_execution", [execution_c],
+        _sim_config(json.dumps(malformed, separators=(",", ":"))),
+    )
+    result_c = _read_result(client, CONTRACT_ADDRESS, execution_c)
+    assert transaction_c.get("txExecutionResultName") != "FINISHED_WITH_RETURN", transaction_c
+    assert result_c["execution"]["state"] == "EVIDENCE_AUTHENTICATED"
+    assert result_c["execution"]["generation"] == 0
+    assert result_c["adjudication"] is None
+    assert result_c["permits"] == []
+    assert len(_read(client, CONTRACT_ADDRESS, "get_adjudications")) == 2
+
+    # Case D: valid but divergent semantic vectors must fail validator agreement.
+    execution_d_args = [
+        mandate_id, 61127, _digest("bundle-d"), _digest("targets-d"), _digest("values-d"),
+        _digest("calldata-d"), _digest("facts-d"), _digest("target-code-d"), _digest("implementation-d"),
+        _digest("evidence-d"), "CONTROLLED_FIXTURE_EXECUTION_D: validator disagreement",
+    ]
+    _, commit_d_tx = _write(client, CONTRACT_ADDRESS, "commit_execution", execution_d_args)
+    execution_d = _read(client, CONTRACT_ADDRESS, "get_executions")[3]["execution_id"]
+    _write(client, CONTRACT_ADDRESS, "authenticate_evidence", [
+        execution_d, _digest("evidence-d"), _digest("authority-d"), _digest("source-d"),
+        _digest("content-d"), 128, "FIREWALL_EVIDENCE_V1", 108,
+    ])
+    vector_true = json.loads(_semantic_response())
+    vector_false = {**vector_true, "scope_expanded": True}
+    adjudicate_d_tx, transaction_d = _write_to_terminal(
+        client, CONTRACT_ADDRESS, "adjudicate_execution", [execution_d],
+        _sim_config_split(
+            json.dumps(vector_true, separators=(",", ":")),
+            json.dumps(vector_false, separators=(",", ":")),
+        ),
+    )
+    result_d = _read_result(client, CONTRACT_ADDRESS, execution_d)
+    assert transaction_d.get("txExecutionResultName") != "FINISHED_WITH_RETURN", transaction_d
+    assert result_d["execution"]["state"] == "EVIDENCE_AUTHENTICATED"
+    assert result_d["execution"]["generation"] == 0
+    assert result_d["adjudication"] is None
+    assert result_d["permits"] == []
+    assert len(_read(client, CONTRACT_ADDRESS, "get_adjudications")) == 2
+
     log = {
         "environment": {"rpc": RPC_URL, "chain_id": 61127, "validators": 5, "llm": "controlled fixture"},
         "case_a": {"execution_id": execution_a, "adjudication": result_a["adjudication"], "permit": result_a["permits"][0], "tx_ids": [create_tx["hash"], commit_a_tx["hash"], adjudicate_a_tx["hash"], permit_a_tx["hash"]]},
         "case_b": {"execution_id": execution_b, "adjudication": result_b["adjudication"], "permit": None, "tx_ids": [commit_b_tx["hash"], adjudicate_b_tx["hash"]]},
+        "case_c": {"execution_id": execution_c, "lifecycle": transaction_c.get("lifecycle"), "execution_state": result_c["execution"]["state"], "adjudication": None, "permit": None, "tx_ids": [commit_c_tx["hash"], adjudicate_c_tx]},
+        "case_d": {"execution_id": execution_d, "lifecycle": transaction_d.get("lifecycle"), "execution_state": result_d["execution"]["state"], "adjudication": None, "permit": None, "tx_ids": [commit_d_tx["hash"], adjudicate_d_tx]},
         "result_shopping": False,
     }
     print(json.dumps(log, default=lambda value: value.hex() if isinstance(value, bytes) else str(value), sort_keys=True))

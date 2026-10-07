@@ -108,26 +108,83 @@ def test_direct_mode_only_mandate_creator_can_freeze_and_owner_is_not_global(dir
         firewall.freeze_mandate(mandate_id, 1)
 
 
-def test_direct_mode_rejects_extra_or_malformed_semantic_output(direct_vm, direct_deploy):
-    firewall = direct_deploy("contracts/firewall.py")
-    _, execution_id = create_and_commit(firewall)
+def test_direct_mode_malformed_semantic_outputs_reject_without_persisting_state(direct_vm, direct_deploy):
     valid = json.loads(semantic())
-    invalid_outputs = [
-        "not-json",
-        "prefix " + semantic(),
-        "```json\n" + semantic() + "\n```",
+    invalid_outputs = []
+    for missing_key in valid:
+        invalid_outputs.append(json.dumps({key: value for key, value in valid.items() if key != missing_key}))
+    invalid_outputs.extend([
         json.dumps({**valid, "fake_permit": True}),
-        json.dumps({key: value for key, value in valid.items() if key != "intent_satisfied"}),
+        "null",
+        json.dumps({**valid, "intent_satisfied": None}),
         json.dumps({**valid, "intent_satisfied": "true"}),
         json.dumps({**valid, "intent_satisfied": 1}),
-        json.dumps({**valid, "intent_satisfied": None}),
-        json.dumps({**valid, "intent_satisfied": {"value": True}}),
-    ]
-    for invalid in invalid_outputs:
+        json.dumps(list(valid.items())),
+        json.dumps({**valid, "intent_satisfied": {"nested": True}}),
+        "not-json",
+        "```json\n" + semantic() + "\n```",
+        "The result is " + semantic(),
+        "{}",
+    ])
+
+    firewall = direct_deploy("contracts/firewall.py")
+    mandate_id, execution_id = create_and_commit(firewall)
+    for index, invalid in enumerate(invalid_outputs):
+        if index:
+            marker = 20 + index
+            execution_id = firewall.commit_execution(
+                mandate_id, 61127, digest(marker), digest(marker + 1), digest(marker + 2),
+                digest(marker + 3), digest(marker + 4), digest(marker + 5), digest(marker + 6),
+                digest(marker + 7), f"malformed-output-case-{index}",
+            )
+            firewall.authenticate_evidence(
+                execution_id, digest(marker + 7), digest(marker + 8), digest(marker + 9),
+                digest(marker + 10), 32, "FIREWALL_EVIDENCE_V1", 106 + index,
+            )
+        direct_vm.clear_mocks()
         mock_semantic(direct_vm, invalid)
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="MALFORMED_SEMANTIC_OUTPUT"):
             firewall.adjudicate_execution(execution_id)
-    assert len(firewall.get_adjudications()) == 0
+        execution = next(item for item in firewall.get_executions() if item.execution_id == execution_id)
+        assert execution.state == "EVIDENCE_AUTHENTICATED"
+        assert execution.generation == 0
+        assert len(firewall.get_adjudications()) == 0
+        assert len(firewall.get_permits()) == 0
+        with pytest.raises(Exception):
+            firewall.issue_permit(execution_id, "ADJ-00000001", 120, digest(13))
+
+
+def test_direct_validator_requires_valid_equal_leader_and_independent_vector(direct_vm, direct_deploy):
+    firewall = direct_deploy("contracts/firewall.py")
+    valid = json.loads(semantic())
+    mock_semantic(direct_vm, json.dumps(valid, separators=(",", ":")))
+    _, execution_id = create_and_commit(firewall)
+    firewall.adjudicate_execution(execution_id)
+
+    def validator_says(response, leader_result=valid):
+        direct_vm.clear_mocks()
+        mock_semantic(direct_vm, response)
+        return direct_vm.run_validator(leader_result=leader_result)
+
+    assert validator_says(json.dumps(valid, separators=(",", ":"))) is True
+
+    missing = dict(valid)
+    del missing["intent_satisfied"]
+    assert validator_says(json.dumps(valid, separators=(",", ":")), missing) is False
+
+    extra = {**valid, "unexpected": False}
+    assert validator_says(json.dumps(valid, separators=(",", ":")), extra) is False
+
+    wrong_type = {**valid, "intent_satisfied": 1}
+    assert validator_says(json.dumps(valid, separators=(",", ":")), wrong_type) is False
+
+    assert validator_says(json.dumps(missing, separators=(",", ":"))) is False
+
+    different = {**valid, "scope_expanded": True}
+    assert validator_says(json.dumps(different, separators=(",", ":"))) is False
+
+    assert validator_says(json.dumps(valid, separators=(",", ":"))) is True
+    assert direct_vm.run_validator(leader_error=ValueError("malformed leader result")) is False
 
 
 def test_direct_mode_rejects_early_permit_double_freeze_and_evidence_overwrite(direct_vm, direct_deploy):
