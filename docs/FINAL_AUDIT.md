@@ -15,7 +15,7 @@ checked-in ABI remain hash-invariant.
 | High | 0 | No open finding |
 | Medium | 0 | No open finding |
 | Low | 0 | No open finding |
-| Info | 3 | Tooling limitation, manual-import provenance boundary, static-EVM-runtime boundary |
+| Info | 3 | GenVM/GLSim runner artifact limitation, manual-import provenance boundary, static-EVM-runtime boundary |
 
 ## A. Trust model — PASS
 
@@ -186,6 +186,9 @@ At the time of this audit commit:
 - adversarial: `INCONCLUSIVE` / no permit;
 - blockchain writes during this audit: zero.
 
-The only informational tooling result observed locally is the documented
-Windows GLSim cache-extraction limitation. It does not alter the contract,
-canonical data, or production reader.
+The only informational tooling result observed in this environment is the
+documented GenVM/GLSim runner artifact limitation: the pinned historical
+`py-genlayer` runner is not present in the downloaded CI/runtime bundle, and
+Windows also cannot extract the cached GLSim tree. The checked-in ABI/source
+schema gate remains authoritative; this does not alter the contract, canonical
+data, or production reader.

@@ -126,9 +126,10 @@ The frozen contract source SHA-256 is
 ABI SHA-256 is
 `928b03e2f1c768794a95f2101609984673c8ac7118587cfe4d5ca4bfddfbaecc`.
 Historical deployment failures and the corrected Deployment #5 starting nonce
-of `1` remain in the provenance records. The Windows environment may prevent
-the installed GLSim runner from extracting its cached runtime; this is recorded
-as a tooling limitation and does not change canonical state.
+of `1` remain in the provenance records. The installed GenVM/GLSim toolchain
+may not contain the historical pinned runner artifact (and the Windows cache
+can also reject extraction); this is recorded as a tooling limitation and does
+not change canonical state.
 
 Read the [final Chronicle audit](docs/FINAL_AUDIT.md),
 [production release record](docs/PRODUCTION_RELEASE.md), and
