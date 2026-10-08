@@ -58,13 +58,31 @@ this correction; raw historical logs remain unchanged.
 
 ## Publication status
 
-This repository has no configured Git remote and no linked Vercel project or
-production environment configuration. The web app's canonical read model is
-still explicitly unavailable, so it must not present the qualification
-snapshot as live chain reads. GitHub publication, Vercel deployment, production
-smoke testing, release tagging, and GenLayer portal submission have not been
-performed. These are blockers, not implied successes.
+The public release infrastructure is configured and the production frontend
+now reads the canonical contract directly through the read-only adapter. The
+release candidate was published from a clean GitHub checkout and smoke-tested
+against the production URL. The final metadata commit's SHA is reported with
+the release handoff to avoid a self-referential hash inside this record.
 
-The exact submission content is represented by this record and the README;
-portal submission requires locating and using the official project submission
-portal. No submission ID or URL exists yet.
+| Field | Value |
+| --- | --- |
+| GitHub | https://github.com/GIFTEDLOV/firewall |
+| Branch | `master` |
+| Product source HEAD before provenance record | `30411579516b32bfb430be95a6f47a5287ae3ba1` |
+| CI run | https://github.com/GIFTEDLOV/firewall/actions/runs/37764214711 (`success`) |
+| Vercel project | `firewall` under `kolofahkelvin16-6437s-projects` |
+| Production URL | https://firewall-xi.vercel.app |
+| Vercel deployment | `dpl_8RdWud8WBb8U5oXnmoBa21QNvuqf` (`READY`) |
+| Production smoke | PASS: HTTP 200, live schema/counts/results, explicit unavailable state, zero console errors, 390px layout |
+| Release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.0 |
+
+The production environment contains only the public contract address, chain ID,
+and RPC URL. It has no private key or write path. No production route falls
+back to fixtures when the RPC fails; it renders an explicit unavailable state.
+The controlled fixture routes remain separately labeled for local product
+tests and are not used by the public canonical routes.
+
+The complete GenLayer submission package is in
+[`docs/GENLAYER_SUBMISSION.md`](GENLAYER_SUBMISSION.md). The official portal
+submission itself is not claimed as successful: it requires the remaining
+authenticated browser action described in that package.

@@ -1,6 +1,6 @@
 {
   "project": "Firewall",
-  "status": "LOCAL_RELEASE_CANDIDATE_PUBLICATION_BLOCKED",
+  "status": "PUBLIC_RELEASE_READY",
   "production_contract": "0xEFD65978F54318349139c93c1576ED3eb6f187b6",
   "deployment_transaction": "0xe42328da75aba2c4f898ec4c4ade8eb1eea10f9d4e4194bc6f4476c4dc0b3ac0",
   "chain_id": 61997,
@@ -52,20 +52,33 @@
   "deployment_5_explicit_fee_sdk_path": true,
   "historical_failures_preserved": true,
   "github": {
-    "repository": null,
-    "published": false,
-    "reason": "No unambiguous configured Firewall Git remote is present."
+    "repository": "https://github.com/GIFTEDLOV/firewall",
+    "branch": "master",
+    "published": true,
+    "source_head_before_provenance_record": "30411579516b32bfb430be95a6f47a5287ae3ba1",
+    "remote_parity": true,
+    "ci_run": "https://github.com/GIFTEDLOV/firewall/actions/runs/37764214711",
+    "ci_status": "success"
   },
   "vercel": {
-    "project": null,
-    "status": "NOT_DEPLOYED",
-    "production_url": null,
-    "reason": "No linked Vercel project or canonical frontend read configuration is present."
+    "account_team": "kolofahkelvin16-6437s-projects",
+    "project": "firewall",
+    "status": "READY",
+    "deployment": "dpl_8RdWud8WBb8U5oXnmoBa21QNvuqf",
+    "production_url": "https://firewall-xi.vercel.app",
+    "source_parity": "PASS; deployed from clean product source HEAD 30411579516b32bfb430be95a6f47a5287ae3ba1"
   },
   "submission": {
-    "attempted": false,
-    "status": "NOT_SUBMITTED",
+    "attempted": true,
+    "status": "MANUAL_PORTAL_ACTION_REQUIRED",
     "submission_ready": true,
-    "requires_manual_portal_action": true
-  }
+    "requires_manual_portal_action": true,
+    "package": "docs/GENLAYER_SUBMISSION.md"
+  },
+  "release": {
+    "tag": "v1.0.0",
+    "release_url": "https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.0",
+    "status": "PENDING_FINAL_EXACT_HEAD_TAG"
+  },
+  "release_head_note": "This record is part of the publication commit; the exact final release HEAD is reported alongside the record to avoid a self-referential hash. Historical deployment and qualification failures remain preserved."
 }

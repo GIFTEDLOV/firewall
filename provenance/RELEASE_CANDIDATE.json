@@ -1,6 +1,6 @@
 {
   "format": "FIREWALL_RELEASE_CANDIDATE_V1",
-  "status": "DEPLOYMENT_5_LIVE_QUALIFICATION_COMPLETE_ADVERSARIAL_INCONCLUSIVE_PUBLICATION_BLOCKED",
+  "status": "DEPLOYMENT_5_LIVE_QUALIFICATION_COMPLETE_ADVERSARIAL_INCONCLUSIVE_PUBLIC_RELEASE_READY",
   "workspace": "C:\\Users\\DELL\\Firewall",
   "starting_head": "1c3cb93d5764ad74ad50104ddae23926e973c32a",
   "release_head": null,
@@ -196,5 +196,14 @@
     "portal_submission": "NOT_SUBMITTED",
     "blocker": "No configured Git remote or linked Vercel project; production UI has no canonical contract reader."
   },
-  "release_head_note": "This metadata is part of the publication commit; the commit SHA is reported separately to avoid a self-referential hash. Historical deployments and qualification failures remain preserved."
+  "release_head_note": "This metadata is part of the publication commit; the commit SHA is reported separately to avoid a self-referential hash. Historical deployments and qualification failures remain preserved.",
+  "publication_completion": {
+    "github": "https://github.com/GIFTEDLOV/firewall",
+    "production_url": "https://firewall-xi.vercel.app",
+    "vercel_deployment": "dpl_8RdWud8WBb8U5oXnmoBa21QNvuqf",
+    "ci_run": "https://github.com/GIFTEDLOV/firewall/actions/runs/37764214711",
+    "production_smoke": "PASS",
+    "submission_package": "docs/GENLAYER_SUBMISSION.md",
+    "submission_status": "MANUAL_PORTAL_ACTION_REQUIRED"
+  }
 }
