@@ -72,5 +72,7 @@ jobs:
         run: pnpm check:secrets
       - name: Production frontend build
         run: pnpm --filter @firewall/web build
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
       - name: Browser E2E with deterministic controlled fixture
         run: pnpm test:browser
