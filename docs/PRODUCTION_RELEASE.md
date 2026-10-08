@@ -61,20 +61,21 @@ this correction; raw historical logs remain unchanged.
 The public release infrastructure is configured and the production frontend
 now reads the canonical contract directly through the read-only adapter. The
 release candidate was published from a clean GitHub checkout and smoke-tested
-against the production URL. The final metadata commit's SHA is reported with
-the release handoff to avoid a self-referential hash inside this record.
+against the production URL. The exact release head is the SHA pointed to by
+tag `v1.0.1`; the pre-metadata source head is recorded to avoid a
+self-referential hash inside this record.
 
 | Field | Value |
 | --- | --- |
 | GitHub | https://github.com/GIFTEDLOV/firewall |
 | Branch | `master` |
-| Product source HEAD before provenance record | `30411579516b32bfb430be95a6f47a5287ae3ba1` |
-| CI run | https://github.com/GIFTEDLOV/firewall/actions/runs/37764214711 (`success`) |
+| Product source HEAD before final provenance metadata | `470c65deb5efb7a7622dec28c8d2ca032cd90457` |
+| CI run | https://github.com/GIFTEDLOV/firewall/actions/runs/37857839041 (`success`) |
 | Vercel project | `firewall` under `kolofahkelvin16-6437s-projects` |
 | Production URL | https://firewall-xi.vercel.app |
-| Vercel deployment | `dpl_8RdWud8WBb8U5oXnmoBa21QNvuqf` (`READY`) |
-| Production smoke | PASS: HTTP 200, live schema/counts/results, explicit unavailable state, zero console errors, 390px layout |
-| Release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.0 |
+| Vercel deployment | `dpl_4yeexce2sTR7aRiVoYo3Fwx1ahBq` (`READY`) |
+| Production smoke | PASS: required routes HTTP 200, live schema/counts/results, local API separation, missing record 404, zero console/page errors |
+| Release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.1 |
 
 The production environment contains only the public contract address, chain ID,
 and RPC URL. It has no private key or write path. No production route falls

@@ -23,6 +23,7 @@
     "test:gate2": "vitest run --config vitest.config.ts && pnpm --filter @firewall/api test",
     "test:browser": "playwright test",
     "visual:check": "node scripts/render_visuals.mjs",
+    "smoke:production": "node scripts/smoke_production.mjs",
     "lint:contract": "python scripts/contract_ast_lint.py contracts/firewall.py",
     "schema:contract": "python scripts/extract_genlayer_schema.py contracts/firewall.py artifacts/firewall.abi.json",
     "schema:check": "node scripts/check_contract_schema.mjs",

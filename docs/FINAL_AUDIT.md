@@ -143,7 +143,7 @@ Evidence: `/api/mandates`, `/api/mandates/[id]`, `/api/mandates/[id]/freeze`,
 `/api/executions/analyze`, `/api/executions/[id]`, `/api/read-model`,
 `/api/activity`, API tests, and browser E2E.
 
-## L. Release and provenance — PASS pending final publication metadata
+## L. Release and provenance — PASS
 
 Contract and ABI hashes remain fixed. Historical failures remain preserved,
 including Deployment #5 starting nonce `1`. The release workflow now runs
@@ -153,8 +153,17 @@ checks, route/secret checks, production build, and fixture-backed browser E2E.
 A separate manually triggered workflow retains the explicit read-only live RPC
 verification.
 
-Final CI, Vercel deployment, smoke, and v1.0.1 metadata are appended to this
-document before tagging. v1.0.0 history is not rewritten.
+Exact-head CI run `37857839041` passed on the clean release candidate
+`470c65deb5efb7a7622dec28c8d2ca032cd90457`. That source was deployed to the
+existing Vercel project and the real production alias passed the throttled
+read-only smoke: all required routes returned HTTP 200, `/api/read-model`
+returned the canonical schema and 1/2/2/2/1 counts, `/api/activity` returned
+canonical state, local workflow APIs remained explicitly non-canonical,
+missing records returned 404, and browser console/page errors were zero.
+The final metadata commit is intentionally recorded using a pre-metadata
+source-head field to avoid a self-referential commit hash; the exact final
+release head is the SHA pointed to by tag `v1.0.1`. v1.0.0 history is not
+rewritten.
 
 ## Regression proof against known failures
 

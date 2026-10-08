@@ -55,29 +55,29 @@
     "repository": "https://github.com/GIFTEDLOV/firewall",
     "branch": "master",
     "published": true,
-    "source_head_before_provenance_record": "30411579516b32bfb430be95a6f47a5287ae3ba1",
+    "source_head_before_provenance_record": "470c65deb5efb7a7622dec28c8d2ca032cd90457",
     "remote_parity": true,
-    "ci_run": "https://github.com/GIFTEDLOV/firewall/actions/runs/37764214711",
+    "ci_run": "https://github.com/GIFTEDLOV/firewall/actions/runs/37857839041",
     "ci_status": "success"
   },
   "vercel": {
     "account_team": "kolofahkelvin16-6437s-projects",
     "project": "firewall",
     "status": "READY",
-    "deployment": "dpl_8RdWud8WBb8U5oXnmoBa21QNvuqf",
+    "deployment": "dpl_4yeexce2sTR7aRiVoYo3Fwx1ahBq",
     "production_url": "https://firewall-xi.vercel.app",
-    "source_parity": "PASS; deployed from clean product source HEAD 30411579516b32bfb430be95a6f47a5287ae3ba1"
+    "source_parity": "PASS; deployed from clean product source HEAD 470c65deb5efb7a7622dec28c8d2ca032cd90457; exact final tag head is recorded in the release handoff"
   },
   "submission": {
-    "attempted": true,
-    "status": "MANUAL_PORTAL_ACTION_REQUIRED",
+    "attempted": false,
+    "status": "NOT_ATTEMPTED_BY_RELEASE_INSTRUCTION",
     "submission_ready": true,
     "requires_manual_portal_action": true,
     "package": "docs/GENLAYER_SUBMISSION.md"
   },
   "release": {
-    "tag": "v1.0.0",
-    "release_url": "https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.0",
+    "tag": "v1.0.1",
+    "release_url": "https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.1",
     "status": "PENDING_FINAL_EXACT_HEAD_TAG"
   },
   "release_head_note": "This record is part of the publication commit; the exact final release HEAD is reported alongside the record to avoid a self-referential hash. Historical deployment and qualification failures remain preserved."
