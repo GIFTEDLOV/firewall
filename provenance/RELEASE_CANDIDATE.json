@@ -159,6 +159,32 @@
     "receipt_available": false,
     "no_replacement_or_retry": true
   },
-  "qualification_status": "NOT_STARTED_DEPLOYMENT_4_FAILED",
+  "deployment_5": {
+    "status": "FINALIZED_ACCEPTED_FINISHED_WITH_RETURN",
+    "tx_hash": "0xe42328da75aba2c4f898ec4c4ade8eb1eea10f9d4e4194bc6f4476c4dc0b3ac0",
+    "nonce": 1,
+    "contract_address": "0xEFD65978F54318349139c93c1576ED3eb6f187b6",
+    "source_sha256": "2b9396f217880a5cdc8a3b4c7adcdce9e3b7ad2cdf975cb847165ce258645735",
+    "source_bytes": 18284,
+    "abi_sha256": "928b03e2f1c768794a95f2101609984673c8ac7118587cfe4d5ca4bfddfbaecc",
+    "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+    "fee_value_wei": "100000000000010352",
+    "serialized_fees_pre_sign_verified": true,
+    "source_parity": true,
+    "public_methods": 14,
+    "semantic_schema": "FIREWALL_MANDATE_V1"
+  },
+  "qualification_status": "STOPPED_MALICIOUS_CANONICAL_RESULT_INCONCLUSIVE",
+  "qualification_run_deployment_5": {
+    "contract_address": "0xEFD65978F54318349139c93c1576ED3eb6f187b6",
+    "compliant": {"execution_id":"EXE-00000001","adjudication_id":"ADJ-00000001","generation":1,"result":"EXECUTION_PERMITTED","permit_id":"PRM-00000001","permit_binding_verified":true},
+    "malicious": {"execution_id":"EXE-00000002","adjudication_id":"ADJ-00000002","generation":1,"result":"INCONCLUSIVE","semantic_vector":{"intent_satisfied":false,"scope_expanded":true,"prohibited_effect_present":true,"economic_terms_consistent":false,"administrative_authority_changed":true,"implementation_behavior_consistent":false,"evidence_sufficient":false},"permit_exists":false},
+    "state_counts": {"mandates":1,"executions":2,"evidence":2,"adjudications":2,"permits":1},
+    "new_broadcasts":10,
+    "result_shopping":false,
+    "adjudication_retries":0,
+    "rebroadcasts_after_hash":0,
+    "next_action":"Stop; do not reassess. The first canonical malicious result is INCONCLUSIVE rather than EXECUTION_BLOCKED."
+  },
   "release_head_note": "The final local commit hash is reported in the handoff; release_head is left null to avoid a self-referential hash. Historical deployments and qualification failures remain preserved."
 }
