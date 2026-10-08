@@ -3,8 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "typecheck": "tsc -p tsconfig.json", "test": "vitest run --config vitest.config.ts" },
-  "dependencies": { "@firewall/domain": "workspace:*", "@firewall/evidence": "workspace:*", "@firewall/policy-engine": "workspace:*", "viem": "2.21.54" },
-  "devDependencies": { "@types/node": "24.7.0", "typescript": "5.9.2", "vitest": "3.2.4" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@firewall/domain": "workspace:*",
+    "@firewall/evidence": "workspace:*",
+    "@firewall/policy-engine": "workspace:*",
+    "genlayer-js": "github:genlayerlabs/genlayer-js#facd9e9dc9a289d0110fe3b5b1a14a2938fe6e01",
+    "viem": "2.21.54"
+  },
+  "devDependencies": {
+    "@types/node": "24.7.0",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
 }

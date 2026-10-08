@@ -3,4 +3,5 @@ packages:
   - "packages/*"
 allowBuilds:
   esbuild: true
+  genlayer-js: true
   sharp: true

@@ -8,7 +8,7 @@ test.describe("Firewall browser truth", () => {
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Keep the mandate intact." })).toBeVisible();
-    await expect(page.getByText("No activity indexed")).toBeVisible();
+    await expect(page.getByText("Live GenLayer state could not be loaded")).toBeVisible();
     expect(errors).toEqual([]);
   });
 

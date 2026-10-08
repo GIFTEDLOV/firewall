@@ -50,13 +50,19 @@ qualification failures are preserved in `provenance/live-qualification.json`.
 See [the production release record](docs/PRODUCTION_RELEASE.md) for hashes,
 transaction history, and publication status.
 
-## Web application status
+## Web application
 
-The current web app is a typed workflow shell. Its read model explicitly reports
-`UNAVAILABLE` until a canonical contract reader is configured; it does not
-substitute fixture data for chain state. Production publication is blocked
-until that read-only integration and its environment are configured and
-verified. No UI action is used as part of the live qualification recorded here.
+The web app reads the canonical contract directly on every dynamic request using
+the pinned GenLayer JS SDK. Configure `FIREWALL_CONTRACT_ADDRESS`,
+`FIREWALL_CHAIN_ID`, and `FIREWALL_RPC_URL` from
+[`apps/web/.env.example`](apps/web/.env.example). The reader validates the
+canonical address, chain, RPC, schema, semantic keys, all five record arrays,
+and permit status. It has no private-key or write path. If the RPC is
+unavailable or misconfigured, the UI shows an explicit unavailable state and
+never substitutes fixtures or the historical qualification snapshot.
+
+The controlled-fixture routes used by local browser tests are explicitly marked
+`CONTROLLED_FIXTURE`; they are not used by the production routes.
 
 ## Local checks
 

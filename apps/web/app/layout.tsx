@@ -27,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav className="topnav" aria-label="Primary navigation">
               {nav.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
             </nav>
-            <div className="network-chip"><span className="status-dot muted" />LOCAL READ MODEL</div>
+            <div className="network-chip"><span className="status-dot" />STUDIO-DEV READ ONLY</div>
           </header>
           <main className="main-content">{children}</main>
         </div>

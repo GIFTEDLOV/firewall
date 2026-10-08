@@ -1,0 +1,40 @@
+name: Firewall release verification
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*.*.*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+          cache: pnpm
+      - name: Enable pnpm
+        run: corepack enable && pnpm --version
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: TypeScript tests
+        run: pnpm test:ts
+      - name: Contract lint and schema parity
+        run: |
+          pnpm lint:contract
+          pnpm schema:contract
+      - name: Release hash invariants
+        run: pnpm verify:invariants
+      - name: Production frontend build
+        run: pnpm --filter @firewall/web build
