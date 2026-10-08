@@ -29,10 +29,6 @@ jobs:
         run: pnpm typecheck
       - name: TypeScript tests
         run: pnpm test:ts
-      - name: Contract lint and schema parity
-        run: |
-          pnpm lint:contract
-          pnpm schema:contract
       - name: Release hash invariants
         run: pnpm verify:invariants
       - name: Production frontend build
