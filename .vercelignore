@@ -1,0 +1,9 @@
+.git
+.next
+node_modules
+.pytest_cache
+.pytest-firewall-*
+test-results
+coverage
+dist
+*.log
