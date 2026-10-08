@@ -21,7 +21,17 @@ def main() -> int:
     if runner is None:
         print("TOOLING_LIMITATION: gltest executable unavailable; direct tests were not run")
         return 0
-    result = subprocess.run([runner, "tests/direct", "-q"], env=env, check=False, capture_output=True, text=True)
+    abi_path = Path("artifacts/firewall.abi.json")
+    abi_bytes = abi_path.read_bytes() if abi_path.exists() else None
+    try:
+        result = subprocess.run([runner, "tests/direct", "-q"], env=env, check=False, capture_output=True, text=True)
+    finally:
+        # gltest clears the artifacts directory before running. Preserve the
+        # frozen ABI byte-for-byte so the next release gate cannot be polluted
+        # by a tooling-side cleanup.
+        if abi_bytes is not None:
+            abi_path.parent.mkdir(parents=True, exist_ok=True)
+            abi_path.write_bytes(abi_bytes)
     output = f"{result.stdout or ''}{result.stderr or ''}"
     print(output, end="")
     if result.returncode != 0 and "FileNotFoundError: runner py-genlayer:" in output and " not under " in output:
