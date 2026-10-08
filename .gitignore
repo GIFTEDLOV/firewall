@@ -16,3 +16,5 @@ __pycache__/
 artifacts/*.coverage.json
 artifacts/local-*.json
 provenance/local-*
+
+.vercel
