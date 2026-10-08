@@ -46,10 +46,10 @@ export function CanonicalOutcome({ adjudication, permit }: { readonly adjudicati
   const inconclusive = adjudication.verdict === "INCONCLUSIVE";
   const failClosedReasons = [
     [adjudication.intentSatisfied, "intent satisfied", "intent not satisfied"],
-    [adjudication.scopeExpanded, "scope unchanged", "scope expanded"],
-    [adjudication.prohibitedEffectPresent, "no prohibited effect", "prohibited effect detected"],
+    [adjudication.scopeExpanded, "scope expanded", "scope unchanged"],
+    [adjudication.prohibitedEffectPresent, "prohibited effect detected", "no prohibited effect"],
     [adjudication.economicTermsConsistent, "economic terms consistent", "economic terms inconsistent"],
-    [adjudication.administrativeAuthorityChanged, "administrative authority unchanged", "administrative authority changed"],
+    [adjudication.administrativeAuthorityChanged, "administrative authority changed", "administrative authority unchanged"],
     [adjudication.implementationBehaviorConsistent, "implementation behavior consistent", "implementation behavior inconsistent"],
     [adjudication.evidenceSufficient, "evidence sufficiency true", "evidence sufficiency false"],
   ] as const;
