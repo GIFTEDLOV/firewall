@@ -44,7 +44,16 @@ export function SemanticMatrix({ adjudication }: { readonly adjudication: Canoni
 
 export function CanonicalOutcome({ adjudication, permit }: { readonly adjudication: CanonicalAdjudication; readonly permit?: CanonicalPermit | undefined }) {
   const inconclusive = adjudication.verdict === "INCONCLUSIVE";
-  return <div className="outcome-block"><div className={`fixture-verdict ${adjudication.verdict === "EXECUTION_PERMITTED" ? "permitted" : inconclusive ? "inconclusive" : "blocked"}`}>{adjudication.verdict}</div>{permit ? <p className="outcome-copy"><strong>Permit issued: <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link></strong> · recorded status {permit.status}.</p> : inconclusive ? <p className="outcome-copy"><strong>NO PERMIT.</strong> `evidence_sufficient=false` makes the canonical result INCONCLUSIVE. Firewall fails closed and does not relabel this result BLOCKED.</p> : <p className="outcome-copy"><strong>NO PERMIT.</strong> The deterministic policy rejected the semantic vector.</p>}</div>;
+  const failClosedReasons = [
+    [adjudication.intentSatisfied, "intent satisfied", "intent not satisfied"],
+    [adjudication.scopeExpanded, "scope unchanged", "scope expanded"],
+    [adjudication.prohibitedEffectPresent, "no prohibited effect", "prohibited effect detected"],
+    [adjudication.economicTermsConsistent, "economic terms consistent", "economic terms inconsistent"],
+    [adjudication.administrativeAuthorityChanged, "administrative authority unchanged", "administrative authority changed"],
+    [adjudication.implementationBehaviorConsistent, "implementation behavior consistent", "implementation behavior inconsistent"],
+    [adjudication.evidenceSufficient, "evidence sufficiency true", "evidence sufficiency false"],
+  ] as const;
+  return <div className="outcome-block"><div className={`fixture-verdict ${adjudication.verdict === "EXECUTION_PERMITTED" ? "permitted" : inconclusive ? "inconclusive" : "blocked"}`}>{adjudication.verdict}</div>{permit ? <p className="outcome-copy"><strong>Permit issued: <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link></strong> · recorded status {permit.status}.</p> : inconclusive ? <div className="outcome-copy"><strong>NO PERMIT.</strong> The semantic vector is INCONCLUSIVE, so Firewall fails closed and does not relabel it BLOCKED.<ul className="outcome-reasons">{failClosedReasons.map(([value, positive, negative]) => <li key={negative}>{value ? positive : negative}</li>)}</ul></div> : <p className="outcome-copy"><strong>NO PERMIT.</strong> The deterministic policy rejected the semantic vector.</p>}</div>;
 }
 
 export function CanonicalForensicComparison({ model, executionId }: { readonly model: CanonicalLiveReadModel; readonly executionId?: string }) {
@@ -60,6 +69,14 @@ export function CanonicalForensicComparison({ model, executionId }: { readonly m
     </div>
     {adjudication ? <div className="canonical-adjudication"><div className="panel-header"><h2>Bounded semantic adjudication · <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link></h2><span className="mono">{model.semanticSchema}</span></div><SemanticMatrix adjudication={adjudication} /><CanonicalOutcome adjudication={adjudication} permit={permit} /></div> : <div className="callout">No canonical adjudication has been read for this execution. Permit authority remains absent.</div>}
   </>;
+}
+
+export function CanonicalQualificationPaths({ model }: { readonly model: CanonicalLiveReadModel }) {
+  return <div className="canonical-path-list">{model.executions.map((execution) => {
+    const adjudication = model.adjudications.find((item) => item.executionId === execution.executionId);
+    const permit = model.permits.find((item) => item.executionId === execution.executionId);
+    return <article className="canonical-path" key={execution.executionId}><div className="canonical-path-header"><div><span className="field-label">Live execution path</span><Link className="detail-id" href={`/executions/${execution.executionId}`}>{execution.executionId}</Link></div>{adjudication && <span className={`status ${adjudication.verdict === "EXECUTION_PERMITTED" ? "safe" : "inconclusive"}`}>{adjudication.verdict}</span>}</div><div className="canonical-path-meta">{adjudication && <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link>}{permit ? <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link> : <span>NO PERMIT</span>}</div>{adjudication && <><SemanticMatrix adjudication={adjudication} /><CanonicalOutcome adjudication={adjudication} permit={permit} /></>}</article>;
+  })}</div>;
 }
 
 export function CanonicalActivity({ model }: { readonly model: CanonicalLiveReadModel }) {

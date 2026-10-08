@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CanonicalActivity, CanonicalForensicComparison, CanonicalNetwork, CanonicalStats, CanonicalUnavailable } from "./canonical-ui";
+import { CanonicalActivity, CanonicalForensicComparison, CanonicalNetwork, CanonicalQualificationPaths, CanonicalStats, CanonicalUnavailable } from "./canonical-ui";
 import { loadCanonical } from "./canonical";
 import { PageHeading, RouteCard } from "./ui";
 
@@ -15,6 +15,7 @@ export default async function Dashboard() {
     <CanonicalStats model={model} />
     <div className="grid two">
       <div className="panel"><div className="panel-header"><h2>Canonical forensic comparison</h2><span className="status safe">LIVE READ</span></div><div className="panel-body"><CanonicalForensicComparison model={model} /></div></div>
+      <div className="panel" style={{ marginTop: 18 }}><div className="panel-header"><h2>All live execution paths</h2><span className="status safe">NO RESULT SHOPPING</span></div><CanonicalQualificationPaths model={model} /></div>
       <div className="panel"><div className="panel-header"><h2>Recent canonical activity</h2><Link href="/activity" className="mono" style={{ color: "var(--info)", fontSize: 11 }}>View all →</Link></div><CanonicalActivity model={model} /></div>
     </div>
     <div className="panel" style={{ marginTop: 18 }}><div className="panel-header"><h2>Work surfaces</h2></div><div className="panel-body route-grid"><RouteCard href="/mandates/new" title="Capture a mandate" body="Import proposal identity and freeze explicit constraints." /><RouteCard href="/executions/new" title="Analyze a package" body="Inspect selectors, value, proxy, implementation, and unknowns." /><RouteCard href="/integrate" title="Integrate Firewall" body="Review the typed lifecycle and canonical read boundary." /></div></div>
