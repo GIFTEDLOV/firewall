@@ -148,5 +148,17 @@
     "github_pushed": 0,
     "vercel_deployed": 0
   },
-  "release_head_note": "The final local commit hash is reported in the handoff; release_head is left null to avoid a self-referential hash. No transaction hashes or addresses are embedded here."
+  "deployment_4_attempt": {
+    "status": "STOPPED_EVM_REVERT_FEE_VALUE_MUST_BE_NONZERO",
+    "tx_hash": "0xfa0f0e553356d0a390c55c07b99b2a98a4981945b0ba6dc2e8092e5802155fe7f",
+    "nonce": 0,
+    "signer": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+    "fee_estimate_wei": "100000000000010352",
+    "error": "FeeValueMustBeNonZero(1); default CLI deploy path omitted attached feeValue",
+    "broadcasts": 1,
+    "receipt_available": false,
+    "no_replacement_or_retry": true
+  },
+  "qualification_status": "NOT_STARTED_DEPLOYMENT_4_FAILED",
+  "release_head_note": "The final local commit hash is reported in the handoff; release_head is left null to avoid a self-referential hash. Historical deployments and qualification failures remain preserved."
 }
