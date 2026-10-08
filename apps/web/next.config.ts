@@ -2,8 +2,24 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  async rewrites() {
-    return [{ source: "/api/:path*", destination: "http://127.0.0.1:4001/api/:path*" }];
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  transpilePackages: [
+    "@firewall/domain",
+    "@firewall/evidence",
+    "@firewall/evm-analyzer",
+    "@firewall/genlayer-client",
+    "@firewall/governance-adapters",
+    "@firewall/indexer",
+    "@firewall/policy-engine",
+    "@firewall/shared",
+    "@firewall/workflow",
+  ],
+  webpack(config) {
+    config.resolve.extensionAlias = {
+      ...(config.resolve.extensionAlias ?? {}),
+      ".js": [".ts", ".tsx", ".js"],
+    };
+    return config;
   },
 };
 

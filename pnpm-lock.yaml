@@ -17,30 +17,18 @@ importers:
 
   apps/api:
     dependencies:
-      '@firewall/domain':
-        specifier: workspace:*
-        version: link:../../packages/domain
-      '@firewall/evidence':
-        specifier: workspace:*
-        version: link:../../packages/evidence
-      '@firewall/evm-analyzer':
-        specifier: workspace:*
-        version: link:../../packages/evm-analyzer
       '@firewall/genlayer-client':
         specifier: workspace:*
         version: link:../../packages/genlayer-client
-      '@firewall/governance-adapters':
-        specifier: workspace:*
-        version: link:../../packages/governance-adapters
       '@firewall/indexer':
         specifier: workspace:*
         version: link:../../packages/indexer
-      '@firewall/policy-engine':
-        specifier: workspace:*
-        version: link:../../packages/policy-engine
       '@firewall/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@firewall/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       zod:
         specifier: 3.25.76
         version: 3.25.76
@@ -66,6 +54,12 @@ importers:
       '@firewall/genlayer-client':
         specifier: workspace:*
         version: link:../../packages/genlayer-client
+      '@firewall/indexer':
+        specifier: workspace:*
+        version: link:../../packages/indexer
+      '@firewall/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       next:
         specifier: 15.5.27
         version: 15.5.27(@playwright/test@1.51.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -234,6 +228,43 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+
+  packages/workflow:
+    dependencies:
+      '@firewall/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@firewall/evidence':
+        specifier: workspace:*
+        version: link:../evidence
+      '@firewall/evm-analyzer':
+        specifier: workspace:*
+        version: link:../evm-analyzer
+      '@firewall/governance-adapters':
+        specifier: workspace:*
+        version: link:../governance-adapters
+      '@firewall/indexer':
+        specifier: workspace:*
+        version: link:../indexer
+      '@firewall/policy-engine':
+        specifier: workspace:*
+        version: link:../policy-engine
+      '@firewall/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: 24.7.0
+        version: 24.7.0
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.7.0)(tsx@4.20.5)
 
 packages:
 

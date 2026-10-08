@@ -8,6 +8,10 @@ export type CanonicalPageState =
 export async function loadCanonical(): Promise<CanonicalPageState> {
   noStore();
   try {
+    if (process.env.NODE_ENV !== "production" && process.env.FIREWALL_TEST_CANONICAL === "1") {
+      const { canonicalTestFixture } = await import("./canonical-test-fixture");
+      return { status: "READY", model: canonicalTestFixture };
+    }
     return { status: "READY", model: await createCanonicalReaderFromEnv().read() };
   } catch (error) {
     return { status: "UNAVAILABLE", error: error instanceof Error ? error.message : "CANONICAL_READ_UNAVAILABLE" };

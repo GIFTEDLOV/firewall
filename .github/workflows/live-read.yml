@@ -1,0 +1,24 @@
+name: Firewall read-only live smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+      - run: corepack enable && pnpm install --frozen-lockfile
+      - name: Verify canonical state with read-only RPC calls
+        env:
+          FIREWALL_CONTRACT_ADDRESS: 0xEFD65978F54318349139c93c1576ED3eb6f187b6
+          FIREWALL_CHAIN_ID: "61997"
+          FIREWALL_RPC_URL: https://studio-dev.genlayer.com/api
+        run: pnpm verify:live-read

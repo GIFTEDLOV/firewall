@@ -4,12 +4,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Firewall · Semantic execution security",
-  description: "A forensic security console for binding governance mandates to exact execution packages.",
+  description: "Semantic execution security for on-chain governance. Bind what governance approved to what will actually execute.",
 };
 
 const nav = [
-  ["Dashboard", "/"],
+  ["Console", "/app"],
   ["Mandates", "/mandates"],
+  ["Executions", "/executions"],
   ["Activity", "/activity"],
   ["Integrate", "/integrate"],
 ] as const;
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav className="topnav" aria-label="Primary navigation">
               {nav.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
             </nav>
-            <div className="network-chip"><span className="status-dot" />STUDIO-DEV READ ONLY</div>
+            <div className="network-chip"><span className="status-dot" />STUDIO-DEV · READ ONLY</div>
           </header>
           <main className="main-content">{children}</main>
         </div>

@@ -1,4 +1,8 @@
-# Local Gate 2 security audit
+# Historical Gate 2 / Gate 3 security audit
+
+> Historical record. This document describes the local release gates that
+> preceded the competition hardening pass. The canonical final status is in
+> [`docs/FINAL_AUDIT.md`](FINAL_AUDIT.md).
 
 Scope: contract authorization, semantic boundary, evidence and permit binding,
 deterministic analyzer, local API, transaction journal, and UI truth boundary.

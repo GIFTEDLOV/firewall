@@ -13,7 +13,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -21,15 +21,49 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.14.0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Enable pnpm
         run: corepack enable && pnpm --version
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Install contract test tooling
+        run: python -m pip install -r requirements.txt
       - name: Typecheck
         run: pnpm typecheck
-      - name: TypeScript tests
+      - name: TypeScript and workflow tests
         run: pnpm test:ts
+      - name: API tests
+        run: pnpm test:api
+      - name: Adversarial tests
+        run: pnpm test:adversarial
+      - name: Property tests
+        run: pnpm test:property
+      - name: Mutation tests
+        run: pnpm test:mutation
+      - name: Canonical reader tests
+        run: pnpm test:canonical-reader
+      - name: Contract AST lint
+        run: pnpm lint:contract
+      - name: Contract schema extraction and check
+        run: |
+          python scripts/extract_genlayer_schema.py contracts/firewall.py "$RUNNER_TEMP/firewall-schema.json"
+          node scripts/check_contract_schema.mjs "$RUNNER_TEMP/firewall-schema.json"
+      - name: Checked-in ABI and contract schema check
+        run: pnpm schema:check
+      - name: Direct contract tests
+        run: pnpm test:direct
       - name: Release hash invariants
         run: pnpm verify:invariants
+      - name: Production truth and controlled fixture isolation
+        run: pnpm check:production-truth
+      - name: Required route check
+        run: pnpm check:routes
+      - name: Secret scan
+        run: pnpm check:secrets
       - name: Production frontend build
         run: pnpm --filter @firewall/web build
+      - name: Browser E2E with deterministic controlled fixture
+        run: pnpm test:browser
