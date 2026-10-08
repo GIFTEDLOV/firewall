@@ -1,6 +1,6 @@
 # Firewall final Chronicle audit
 
-Status: release-candidate hardening in progress; canonical contract frozen.
+Status: final release published; canonical contract frozen.
 
 This is the canonical final audit for the competition release candidate. It
 supersedes neither the historical records nor the deployed contract. No

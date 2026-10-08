@@ -58,24 +58,23 @@ this correction; raw historical logs remain unchanged.
 
 ## Publication status
 
-The public release infrastructure is configured and the production frontend
-now reads the canonical contract directly through the read-only adapter. The
-release candidate was published from a clean GitHub checkout and smoke-tested
-against the production URL. The exact release head is the SHA pointed to by
-tag `v1.0.1`; the pre-metadata source head is recorded to avoid a
-self-referential hash inside this record.
+The public release is published and the production frontend reads the
+canonical contract directly through the read-only adapter. Repository metadata
+records stable project, network, contract, release, and deployment methodology
+facts. Exact CI run IDs and Vercel deployment IDs for each release are retained
+in the corresponding GitHub Release and final handoff, avoiding a
+self-referential metadata commit loop.
 
 | Field | Value |
 | --- | --- |
 | GitHub | https://github.com/GIFTEDLOV/firewall |
 | Branch | `master` |
-| Product source HEAD before final provenance metadata | `470c65deb5efb7a7622dec28c8d2ca032cd90457` |
-| CI run | https://github.com/GIFTEDLOV/firewall/actions/runs/37857839041 (`success`) |
+| Current release | `v1.0.2` |
 | Vercel project | `firewall` under `kolofahkelvin16-6437s-projects` |
 | Production URL | https://firewall-xi.vercel.app |
-| Vercel deployment | `dpl_4yeexce2sTR7aRiVoYo3Fwx1ahBq` (`READY`) |
-| Production smoke | PASS: required routes HTTP 200, live schema/counts/results, local API separation, missing record 404, zero console/page errors |
-| Release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.1 |
+| Release methodology | Clean exact-head checkout → CI success → READY production deployment → read-only smoke → tag/release |
+| Historical v1.0.1 deployment | `dpl_4FdzfED33EAHGA4kAU7b9NJnroCV`, source `e2205ddad0d315ecf21480add5192e837620f63b` |
+| Current release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.2 |
 
 The production environment contains only the public contract address, chain ID,
 and RPC URL. It has no private key or write path. No production route falls
