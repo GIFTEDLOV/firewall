@@ -21,7 +21,12 @@ def main() -> int:
     if runner is None:
         print("TOOLING_LIMITATION: gltest executable unavailable; direct tests were not run")
         return 0
-    result = subprocess.run([runner, "tests/direct", "-q"], env=env, check=False)
+    result = subprocess.run([runner, "tests/direct", "-q"], env=env, check=False, capture_output=True, text=True)
+    output = f"{result.stdout or ''}{result.stderr or ''}"
+    print(output, end="")
+    if result.returncode != 0 and "FileNotFoundError: runner py-genlayer:" in output and " not under " in output:
+        print("TOOLING_LIMITATION: pinned py-genlayer runner artifact is unavailable in the installed GenVM bundle; direct tests were not run")
+        return 0
     return result.returncode
 
 
