@@ -23,7 +23,7 @@ portal submission success is claimed.
 
 - GitHub: https://github.com/GIFTEDLOV/firewall
 - Production: https://firewall-xi.vercel.app
-- Release: https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.2
+- Release: https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.3
 - Canonical contract: `0xEFD65978F54318349139c93c1576ED3eb6f187b6`
 - Deployment transaction: `0xe42328da75aba2c4f898ec4c4ade8eb1eea10f9d4e4194bc6f4476c4dc0b3ac0`
 - Chain: `61997`

@@ -74,8 +74,8 @@
     "package": "docs/GENLAYER_SUBMISSION.md"
   },
   "release": {
-    "tag": "v1.0.2",
-    "release_url": "https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.2",
+    "tag": "v1.0.3",
+    "release_url": "https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.3",
     "status": "PUBLISHED"
   },
   "release_head_note": "Stable provenance only: exact CI and hosting deployment identifiers are retained in the corresponding GitHub Release and final handoff. Historical deployment and qualification failures remain preserved."

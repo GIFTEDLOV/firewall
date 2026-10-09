@@ -69,12 +69,12 @@ self-referential metadata commit loop.
 | --- | --- |
 | GitHub | https://github.com/GIFTEDLOV/firewall |
 | Branch | `master` |
-| Current release | `v1.0.2` |
+| Current release | `v1.0.3` |
 | Vercel project | `firewall` under `kolofahkelvin16-6437s-projects` |
 | Production URL | https://firewall-xi.vercel.app |
 | Release methodology | Clean exact-head checkout → CI success → READY production deployment → read-only smoke → tag/release |
 | Historical v1.0.1 deployment | `dpl_4FdzfED33EAHGA4kAU7b9NJnroCV`, source `e2205ddad0d315ecf21480add5192e837620f63b` |
-| Current release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.2 |
+| Current release URL | https://github.com/GIFTEDLOV/firewall/releases/tag/v1.0.3 |
 
 The production environment contains only the public contract address, chain ID,
 and RPC URL. It has no private key or write path. No production route falls
