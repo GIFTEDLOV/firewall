@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { authenticateEvidenceBundle, evidenceFailureStatus } from "./index.js";
 
 describe("evidence binding", () => {
-  it("hashes and authenticates evidence without treating a URL as identity", () => {
+  it("creates a commitment without claiming source authentication", () => {
     const bundle = authenticateEvidenceBundle({
       evidenceId: "EVD-00000001",
       mandateId: "MAN-00000001",
@@ -33,9 +33,10 @@ describe("evidence binding", () => {
       }],
       schemaVersion: "FIREWALL_EVIDENCE_V1",
     });
-    expect(bundle.status).toBe("AUTHENTICATED");
+    expect(bundle.status).toBe("UNVERIFIED");
     expect(bundle.bundleHash).toMatch(/^0x[0-9a-f]{64}$/);
     expect(evidenceFailureStatus({ sourceAvailable: false, contentMatches: true })).toBe("SOURCE_UNAVAILABLE");
     expect(evidenceFailureStatus({ sourceAvailable: true, contentMatches: false })).toBe("EVIDENCE_MISMATCH");
+    expect(evidenceFailureStatus({ sourceAvailable: true, contentMatches: true })).toBe("UNVERIFIED");
   });
 });

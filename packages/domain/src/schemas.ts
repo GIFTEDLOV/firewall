@@ -168,7 +168,17 @@ export const EvidenceBundleSchema = z.object({
   schemaVersion: z.literal("FIREWALL_EVIDENCE_V1"),
   bundleHash: Hash32Schema,
   authenticatedAt: TimestampSchema.nullable(),
-  status: z.enum(["PENDING", "AUTHENTICATED", "SOURCE_UNAVAILABLE", "EVIDENCE_MISMATCH"]),
+  status: z.enum([
+    "PENDING",
+    "UNVERIFIED",
+    "VERIFIED_PRE_EXECUTION",
+    "VERIFIED_POST_EXECUTION",
+    "SOURCE_UNAVAILABLE",
+    "EVIDENCE_MISMATCH",
+    "STALE_EVIDENCE",
+    "REORG_DETECTED",
+    "INSUFFICIENT_EVIDENCE",
+  ]),
 }).strict();
 
 export const SemanticSchemaVersionSchema = z.literal("FIREWALL_MANDATE_V1");
@@ -232,4 +242,14 @@ export type Verdict = z.infer<typeof VerdictSchema>;
 export type Adjudication = z.infer<typeof AdjudicationSchema>;
 export type Permit = z.infer<typeof PermitSchema>;
 
-export const EvidenceStatusSchema = z.enum(["PENDING", "AUTHENTICATED", "SOURCE_UNAVAILABLE", "EVIDENCE_MISMATCH"]);
+export const EvidenceStatusSchema = z.enum([
+  "PENDING",
+  "UNVERIFIED",
+  "VERIFIED_PRE_EXECUTION",
+  "VERIFIED_POST_EXECUTION",
+  "SOURCE_UNAVAILABLE",
+  "EVIDENCE_MISMATCH",
+  "STALE_EVIDENCE",
+  "REORG_DETECTED",
+  "INSUFFICIENT_EVIDENCE",
+]);

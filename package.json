@@ -4,7 +4,12 @@
   "version": "0.1.0",
   "packageManager": "pnpm@11.0.9",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp"]
+    "onlyBuiltDependencies": [
+      "bufferutil",
+      "esbuild",
+      "sharp",
+      "utf-8-validate"
+    ]
   },
   "engines": {
     "node": ">=24.14.0",
@@ -14,11 +19,13 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "test:ts": "pnpm --filter @firewall/domain test && pnpm --filter @firewall/evidence test && pnpm --filter @firewall/policy-engine test && pnpm --filter @firewall/evm-analyzer test && pnpm --filter @firewall/governance-adapters test && pnpm --filter @firewall/genlayer-client test && pnpm --filter @firewall/workflow test",
+    "test:ts": "pnpm --filter @firewall/domain test && pnpm --filter @firewall/evidence test && pnpm --filter @firewall/policy-engine test && pnpm --filter @firewall/evm-analyzer test && pnpm --filter @firewall/governance-adapters test && pnpm --filter @firewall/genlayer-client test && pnpm --filter @firewall/workflow test && pnpm --filter @firewall/safe-enforcement test",
     "test:api": "pnpm --filter @firewall/api test",
     "test:adversarial": "pnpm exec vitest run --config vitest.config.ts tests/adversarial",
     "test:property": "pnpm exec vitest run --config vitest.config.ts tests/property",
     "test:mutation": "pnpm exec vitest run --config vitest.config.ts tests/mutation",
+    "test:evidence": "pnpm --filter @firewall/evidence test",
+    "test:solidity": "node scripts/test_safe_guard.mjs",
     "test:canonical-reader": "pnpm --filter @firewall/genlayer-client test",
     "test:gate2": "vitest run --config vitest.config.ts && pnpm --filter @firewall/api test",
     "test:browser": "playwright test",
@@ -33,12 +40,15 @@
     "verify:invariants": "node scripts/verify_release_invariants.mjs",
     "verify:live-read": "pnpm --filter @firewall/api exec tsx ../../scripts/verify_live_read.ts",
     "test:direct": "python scripts/run_direct_tests.py",
-    "verify": "pnpm typecheck && pnpm test:ts && pnpm test:api && pnpm test:adversarial && pnpm test:property && pnpm test:mutation && pnpm lint:contract && pnpm schema:check && pnpm test:direct && pnpm --filter @firewall/web build",
+    "verify": "pnpm typecheck && pnpm test:ts && pnpm test:evidence && pnpm test:api && pnpm test:adversarial && pnpm test:property && pnpm test:mutation && pnpm test:solidity && pnpm lint:contract && pnpm schema:check && pnpm test:direct && pnpm audit --audit-level low && pnpm --filter @firewall/web build",
     "dev:web": "pnpm --filter @firewall/web dev",
     "dev:api": "pnpm --filter @firewall/api dev"
   },
   "devDependencies": {
-    "@playwright/test": "1.51.1",
-    "vitest": "3.2.4"
+    "@playwright/test": "1.55.1",
+    "ganache": "7.9.2",
+    "solc": "0.8.28",
+    "viem": "2.21.54",
+    "vitest": "4.1.11"
   }
 }

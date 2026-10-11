@@ -35,6 +35,10 @@ jobs:
         run: pnpm typecheck
       - name: TypeScript and workflow tests
         run: pnpm test:ts
+      - name: Independently authenticated evidence tests
+        run: pnpm test:evidence
+      - name: Real local EVM Safe guard tests
+        run: pnpm test:solidity
       - name: API tests
         run: pnpm test:api
       - name: Adversarial tests
@@ -70,6 +74,8 @@ jobs:
         run: pnpm check:routes
       - name: Secret scan
         run: pnpm check:secrets
+      - name: Dependency audit
+        run: pnpm audit --audit-level low
       - name: Production frontend build
         run: pnpm --filter @firewall/web build
       - name: Install Playwright browser

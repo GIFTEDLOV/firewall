@@ -39,3 +39,13 @@ for an authenticated project owner to open the official GenLayer project
 submission portal, paste this package, and press its final submit control. No
 transaction, faucet, permit, adjudication, or other blockchain write is part
 of that action.
+
+## Steward remediation status
+
+The frozen V1 contract at the address above was not changed. The repository now
+contains a separately versioned V2 candidate and a local Safe enforcement
+integration. V2 requires a new deployment because the deployed V1 contract
+cannot independently retrieve and authenticate EVM execution facts, and its
+permit timestamp/view boundary accepts caller inputs. No V2 deployment,
+Studio-dev write, public-chain write, Vercel deployment, portal submission, or
+GitHub push was performed during remediation.
