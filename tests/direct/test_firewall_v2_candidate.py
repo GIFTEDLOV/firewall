@@ -12,6 +12,8 @@ def test_v2_candidate_is_separate_and_source_grounded():
     assert "gl.nondet.web.get" in source
     assert "gl.vm.run_nondet_unsafe" in source
     assert "trusted_source_a" in source and "trusted_source_b" in source
+    assert "def create_mandate(" in source and "def freeze_mandate(" in source
+    assert "mandate_id" in source and "MANDATE_FROZEN" in source
     assert "INDEPENDENT_EVIDENCE_UNAVAILABLE_OR_MISMATCH" in source
     assert "def authenticate_evidence(self, execution_id: str)" in source
     assert "datetime.now(timezone.utc)" in source

@@ -1,0 +1,91 @@
+{
+  "purpose": "FIREWALL_V2_STUDIO_DEV_DEPLOYMENT_PREFLIGHT",
+  "status": "READ_ONLY_COST_GATE",
+  "recorded_at_utc": "2026-10-11T22:28:19.0779340Z",
+  "network": {
+    "name": "studio-dev",
+    "rpc": "https://studio-dev.genlayer.com/api",
+    "chain_id": 61997,
+    "observed_block": "0x6acc0bfc",
+    "observed_block_number": 1791757308,
+    "rpc_chain_id": "0xf22d",
+    "net_version": "61997"
+  },
+  "deployer": {
+    "account_name": "firewall-only",
+    "address": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+    "wallet_balance_wei": "1293760270499936286",
+    "wallet_balance_gen": "1.293760270499936286",
+    "latest_nonce": "0x46",
+    "pending_nonce": "0x46",
+    "balance_read_only": true
+  },
+  "v2_package": {
+    "source": "contracts/firewall_v2_candidate.py",
+    "source_sha256": "51b5a83af8456393fcf35448c70d8f70a8f071f123c4d327d3134965df0a09cc",
+    "abi": "artifacts/firewall_v2_candidate.abi.json",
+    "schema": "artifacts/firewall_v2_candidate.schema.json",
+    "abi_sha256": "b313e74d96845f21eae755cdf60329f8c8306ff57f461a9459b42f70f2ae0eca",
+    "schema_sha256": "b313e74d96845f21eae755cdf60329f8c8306ff57f461a9459b42f70f2ae0eca",
+    "runner": "py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0",
+    "semantic_schema": "FIREWALL_MANDATE_V2",
+    "methods": 14,
+    "view_methods": 8,
+    "write_methods": 6,
+    "constructor": ["trusted_source_a", "trusted_source_b"],
+    "official_validation": {
+      "lint": "PASS",
+      "validate": "PASS",
+      "schema": "PASS",
+      "typecheck": "PASS"
+    }
+  },
+  "fee_estimate": {
+    "source": "genlayer estimate-fees --rpc https://studio-dev.genlayer.com/api --json --fee-preset standard",
+    "fee_value_wei_per_write_cap": "100000000000010352",
+    "fee_value_gen_per_write_cap": "0.100000000000010352",
+    "distribution": {
+      "leaderTimeunitsAllocation": "100",
+      "validatorTimeunitsAllocation": "200",
+      "appealRounds": "0",
+      "executionBudgetPerRound": "25000000000000000",
+      "executionConsumed": "0",
+      "totalMessageFees": "0",
+      "rotations": ["3"],
+      "maxPriceGenPerTimeUnit": "2",
+      "storageFeeMaxGasPrice": "300000000",
+      "receiptFeeMaxGasPrice": "300000000"
+    },
+    "exact_method_quotes": "UNAVAILABLE_BEFORE_DEPLOYMENT",
+    "qualification_write_count_including_deploy_and_adversarial_auth": 9,
+    "qualification_cap_wei": "900000000000093168",
+    "qualification_cap_gen": "0.900000000000093168",
+    "proposed_maximum_with_10_percent_buffer_wei": "990000000000102484",
+    "proposed_maximum_with_10_percent_buffer_gen": "0.990000000000102484"
+  },
+  "qualification_sequence": [
+    "deploy(trusted_source_a, trusted_source_b)",
+    "create_mandate(...)",
+    "freeze_mandate(mandate_id)",
+    "commit_execution(mandate_id, chain_id, expected_facts)",
+    "authenticate_evidence(execution_id) [positive authenticated source case]",
+    "adjudicate_execution(execution_id) [positive case]",
+    "issue_permit(execution_id, adjudication_id)",
+    "get_permits()/get_permit_status(permit_id) [read-only, zero GEN]",
+    "commit_execution(...) [adversarial distinct package]",
+    "authenticate_evidence(execution_id) [unauthenticated/mismatched source must fail]"
+  ],
+  "broadcast": {
+    "transactions_broadcast": 0,
+    "gen_spent": "0",
+    "public_evm_deployment": false,
+    "github_push": false,
+    "vercel_deployment": false,
+    "portal_submission": false
+  },
+  "blockers": [
+    "Two independently operated HTTPS evidence endpoints are not configured; constructor values cannot be safely invented because validators must fetch the authenticated package from both sources.",
+    "The V2 contract cannot be qualified as EVM enforcement; the local Safe guard proof remains a separate Ganache-only result.",
+    "Exact method-level fee simulation requires a deployed V2 address and therefore cannot precede the cost gate."
+  ]
+}

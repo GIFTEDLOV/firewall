@@ -12,7 +12,7 @@
   "v2_candidate": {
     "source": "contracts/firewall_v2_candidate.py",
     "deployment": "NOT_DEPLOYED",
-    "sha256": "b358f65e3a9beafc54c707222f41aa52ed62be58649c3caf33f2235f96d8e3bd"
+    "sha256": "51b5a83af8456393fcf35448c70d8f70a8f071f123c4d327d3134965df0a09cc"
   },
   "evm_enforcement": {
     "source": "contracts/FirewallSafeGuard.sol",
