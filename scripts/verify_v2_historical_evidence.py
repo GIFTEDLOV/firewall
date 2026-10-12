@@ -88,6 +88,16 @@ def _load_candidate():
     return module
 
 
+def _fetch_documents(config: dict) -> dict:
+    documents = {}
+    for key in ("transaction", "block", "logs", "implementation", "transaction_payload", "receipt", "internal"):
+        url = config.get(key)
+        if not isinstance(url, str) or not url or url in documents:
+            continue
+        documents[url] = json.loads(_Web.get(url).body.decode("utf-8"))
+    return documents
+
+
 def main() -> None:
     module = _load_candidate()
     candidate = module.FirewallV2.__new__(module.FirewallV2)
@@ -99,19 +109,24 @@ def main() -> None:
         "logs": f"https://eth.blockscout.com/api/v2/transactions/{TX}/logs",
         "implementation": f"https://eth.blockscout.com/api/v2/smart-contracts/{BLOCKSCOUT_IMPLEMENTATION}",
     }
-    blockchair = {
-        "kind": "BLOCKCHAIR_ETHEREUM",
+    routescan = {
+        "kind": "ROUTESCAN_ETHEREUM",
         "chain_id": "1",
-        "transaction": f"https://api.blockchair.com/ethereum/dashboards/transaction/{TX}?trace=true",
-        "block": f"https://api.blockchair.com/ethereum/raw/block/{BLOCK}",
+        "transaction": f"https://api.routescan.io/v2/network/mainnet/evm/1/transactions/{TX}",
+        "transaction_payload": f"https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getTransactionByHash&txhash={TX}",
+        "receipt": f"https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getTransactionReceipt&txhash={TX}",
+        "block": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getBlockByNumber&tag=0x15ca2f0&boolean=false",
+        "internal": f"https://api.routescan.io/v2/network/mainnet/evm/1/internal-operations?txHash={TX}",
     }
     source_a = json.dumps(blockscout, separators=(",", ":"), sort_keys=True)
-    source_b = json.dumps(blockchair, separators=(",", ":"), sort_keys=True)
+    source_b = json.dumps(routescan, separators=(",", ":"), sort_keys=True)
+    documents = _fetch_documents(blockscout)
+    documents.update(_fetch_documents(routescan))
     candidate.trusted_source_a = source_a
     candidate.trusted_source_b = source_b
 
-    first = candidate._normalize_blockscout(blockscout, 1)
-    second = candidate._normalize_blockchair(blockchair, 1)
+    first = candidate._normalize_blockscout(blockscout, 1, documents)
+    second = candidate._normalize_routescan(routescan, 1, documents)
     assert first is not None and second is not None
     assert first == second
     assert first["chain_id"] == 1
@@ -136,7 +151,15 @@ def main() -> None:
         "UNVERIFIED",
         0,
     )
-    assert candidate._authenticated_source(execution) == first
+    assert candidate._authenticated_source(execution, documents) == first
+
+    original_routescan_normalizer = candidate._normalize_routescan
+    candidate._normalize_routescan = lambda config, chain, source_documents: {
+        **original_routescan_normalizer(config, chain, source_documents),
+        "block_hash": "0x" + "00" * 32,
+    }
+    assert candidate._authenticated_source(execution, documents) is None
+    candidate._normalize_routescan = original_routescan_normalizer
 
     tampered = dict(expected_facts)
     tampered["transaction_calldata"] = "0xdeadbeef"
@@ -152,7 +175,7 @@ def main() -> None:
         "UNVERIFIED",
         0,
     )
-    assert candidate._authenticated_source(tampered_execution) is None
+    assert candidate._authenticated_source(tampered_execution, documents) is None
 
     print(
         json.dumps(
@@ -161,6 +184,7 @@ def main() -> None:
                 "provider_2": source_b,
                 "independent_facts_match": True,
                 "validator_side_retrieval": "same normalizers and same native GET documents",
+                "provider_disagreement_rejected": True,
                 "tampered_expected_facts_rejected": True,
                 "chain_id": first["chain_id"],
                 "transaction_hash": first["transaction_hash"],

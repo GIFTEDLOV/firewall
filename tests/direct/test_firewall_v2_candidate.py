@@ -10,13 +10,14 @@ def test_v2_candidate_is_separate_and_source_grounded():
     tree = ast.parse(source, filename=str(SOURCE))
     assert any(isinstance(node, ast.ClassDef) and node.name == "FirewallV2" for node in tree.body)
     assert "gl.nondet.web.get" in source
+    assert "gl.eq_principle.strict_eq" in source
     assert "gl.vm.run_nondet_unsafe" in source
     assert "trusted_source_a" in source and "trusted_source_b" in source
     assert "def create_mandate(" in source and "def freeze_mandate(" in source
     assert "mandate_id" in source and "MANDATE_FROZEN" in source
     assert "INDEPENDENT_EVIDENCE_UNAVAILABLE_OR_MISMATCH" in source
     assert "def authenticate_evidence(self, execution_id: str)" in source
-    assert "def _normalize_blockscout(" in source and "def _normalize_blockchair(" in source
+    assert "def _normalize_blockscout(" in source and "def _normalize_routescan(" in source
     assert "transaction_hash" in source and "governance_contract" in source
     assert "SAFE_DIRECT_CALL_ONLY" in source and "ExecutionSuccess" in source
     assert "first != second" in source

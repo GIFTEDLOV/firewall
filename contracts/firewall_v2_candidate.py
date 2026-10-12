@@ -206,16 +206,6 @@ class FirewallV2(gl.contract.Contract):
         assert False
         return self.adjudications[0]
 
-    def _source_json(self, url: str) -> dict | None:
-        try:
-            response = gl.nondet.web.get(url)
-            if response.body is None:
-                return None
-            value = json.loads(response.body.decode("utf-8"))
-            return value if type(value) is dict else None
-        except Exception:
-            return None
-
     def _provider_config(self, encoded: str) -> dict | None:
         try:
             config = json.loads(encoded)
@@ -225,6 +215,15 @@ class FirewallV2(gl.contract.Contract):
             assert int(config["chain_id"]) > 0
             if config.get("kind") == "BLOCKSCOUT_V2":
                 if type(config.get("logs")) is not str or type(config.get("implementation")) is not str:
+                    return None
+            elif config.get("kind") == "ROUTESCAN_ETHEREUM":
+                # Routescan's documented native transaction/internal-operation
+                # responses are combined with its documented Etherscan-style
+                # transaction, receipt, and block GET responses. These are
+                # separate documents from a separate operator; the normalizer
+                # never treats a caller-supplied canonical document as proof.
+                required_routescan = ("transaction_payload", "receipt", "internal")
+                if any(type(config.get(key)) is not str or config.get(key) == "" for key in required_routescan):
                     return None
             elif config.get("kind") != "BLOCKCHAIR_ETHEREUM":
                 return None
@@ -270,11 +269,11 @@ class FirewallV2(gl.contract.Contract):
         except Exception:
             return None
 
-    def _normalize_blockscout(self, config: dict, chain_id: u256) -> dict | None:
-        tx = self._source_json(config["transaction"])
-        block = self._source_json(config["block"])
-        logs = self._source_json(config["logs"])
-        implementation = self._source_json(config["implementation"])
+    def _normalize_blockscout(self, config: dict, chain_id: u256, documents: dict) -> dict | None:
+        tx = documents.get(config["transaction"])
+        block = documents.get(config["block"])
+        logs = documents.get(config["logs"])
+        implementation = documents.get(config["implementation"])
         try:
             assert tx is not None and block is not None and logs is not None and implementation is not None
             tx_hash = _lower(tx["hash"])
@@ -298,9 +297,9 @@ class FirewallV2(gl.contract.Contract):
         except Exception:
             return None
 
-    def _normalize_blockchair(self, config: dict, chain_id: u256) -> dict | None:
-        tx_payload = self._source_json(config["transaction"])
-        block_payload = self._source_json(config["block"])
+    def _normalize_blockchair(self, config: dict, chain_id: u256, documents: dict) -> dict | None:
+        tx_payload = documents.get(config["transaction"])
+        block_payload = documents.get(config["block"])
         try:
             assert tx_payload is not None and block_payload is not None
             assert str(config["chain_id"]) == str(chain_id)
@@ -340,10 +339,106 @@ class FirewallV2(gl.contract.Contract):
         except Exception:
             return None
 
-    def _authenticated_source(self, execution: Execution) -> dict | None:
-        # Source URLs/configuration are never proof. Each validator fetches
-        # every native provider document, normalizes it, and compares the
-        # resulting authenticated facts before consensus sees them.
+    def _normalize_routescan(self, config: dict, chain_id: u256, documents: dict) -> dict | None:
+        """Normalize Routescan's native and Etherscan-compatible GET schemas.
+
+        The native transaction and internal-operation documents establish the
+        Safe call and implementation path. The Etherscan-compatible documents
+        establish the exact input, receipt/log outcome, and block parent. The
+        supported case is intentionally limited to a historical Safe direct
+        CALL with empty inner calldata because Routescan's internal-operation
+        schema does not expose arbitrary nested input bytes.
+        """
+        native_tx = documents.get(config["transaction"])
+        tx_payload = documents.get(config["transaction_payload"])
+        receipt_payload = documents.get(config["receipt"])
+        block_payload = documents.get(config["block"])
+        internal_payload = documents.get(config["internal"])
+        try:
+            assert native_tx is not None and tx_payload is not None and receipt_payload is not None
+            assert block_payload is not None and internal_payload is not None
+            assert str(config["chain_id"]) == str(chain_id)
+
+            tx_result = native_tx
+            raw_tx = tx_payload["result"]
+            receipt = receipt_payload["result"]
+            block = block_payload["result"]
+            assert type(raw_tx) is dict and type(receipt) is dict and type(block) is dict
+            assert tx_result["type"] == "evm_tx" and str(tx_result["chainId"]) == str(chain_id)
+            assert tx_result["status"] is True
+            tx_hash = _lower(tx_result["id"])
+            safe = _lower(tx_result["to"])
+            assert tx_hash == _lower(raw_tx["hash"])
+            assert len(tx_hash) == 66 and _lower(raw_tx["to"]) == safe
+            assert str(tx_result["value"]) == "0" and str(raw_tx["value"]) in ("0x0", "0x00")
+            block_number = int(tx_result["blockNumber"])
+            block_hash = _lower(tx_result["blockHash"])
+            assert int(raw_tx["blockNumber"], 16) == block_number
+            assert _lower(raw_tx["blockHash"]) == block_hash
+            assert int(raw_tx["chainId"], 16) == int(chain_id)
+            raw_input = _lower(raw_tx["input"])
+            assert raw_input.startswith("0x")
+            target = _safe_execution(raw_input, safe)
+
+            assert receipt["status"] in ("0x1", "0x01")
+            assert _lower(receipt["transactionHash"]) == tx_hash
+            assert _lower(receipt["to"]) == safe
+            assert _lower(receipt["blockHash"]) == block_hash
+            assert int(receipt["blockNumber"], 16) == block_number
+            logs = receipt["logs"]
+            assert type(logs) is list
+            execution_topic = "0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e"
+            assert any(
+                type(item) is dict
+                and _lower(item["address"]) == safe
+                and type(item["topics"]) is list
+                and len(item["topics"]) >= 1
+                and _lower(item["topics"][0]) == execution_topic
+                and item.get("removed") is False
+                and _lower(item["transactionHash"]) == tx_hash
+                and _lower(item["blockHash"]) == block_hash
+                for item in logs
+            )
+
+            assert _lower(block["hash"]) == block_hash
+            assert int(block["number"], 16) == block_number
+            parent_hash = _lower(block["parentHash"])
+            assert len(parent_hash) == 66
+
+            internal_items = internal_payload["items"]
+            assert type(internal_items) is list
+            assert all(
+                str(item["chainId"]) == str(chain_id)
+                and _lower(item["txHash"]) == tx_hash
+                and int(item["blockNumber"]) == block_number
+                and item["status"] is True
+                for item in internal_items
+            )
+            delegates = [item for item in internal_items if str(item["type"]).upper() == "DELEGATECALL"]
+            assert len(delegates) == 1
+            impl = _lower(delegates[0]["to"])
+            assert _lower(delegates[0]["from"]) == safe
+            direct_calls = [
+                item for item in internal_items
+                if str(item["type"]).upper() == "CALL"
+                and _lower(item["from"]) == safe
+                and _lower(item["to"]) == target["target"]
+            ]
+            assert len(direct_calls) == 1
+            assert str(direct_calls[0]["value"]) == target["value"]
+            # Routescan's internal-operation record has no arbitrary input
+            # field. For this supported qualification case, empty Safe inner
+            # calldata is required and the provider's direct CALL confirms the
+            # exact target/value path.
+            assert target["calldata"] == "0x"
+            return self._canonical_safe_facts(chain_id, tx_hash, block_number, block_hash, parent_hash, safe, raw_input, impl, target, "SUCCESS", "SAFE_EXECUTION_SUCCESS")
+        except Exception:
+            return None
+
+    def _authenticated_source(self, execution: Execution, documents: dict) -> dict | None:
+        # Source URLs/configuration are never proof. Documents are fetched
+        # inside the active equivalence-principle block; this method only
+        # normalizes and binds the fetched documents deterministically.
         if execution.source_a != self.trusted_source_a or execution.source_b != self.trusted_source_b or execution.source_a == execution.source_b:
             return None
         first_config = self._provider_config(execution.source_a)
@@ -356,12 +451,17 @@ class FirewallV2(gl.contract.Contract):
                 return None
         except Exception:
             return None
-        if first_config["kind"] == "BLOCKSCOUT_V2":
-            first = self._normalize_blockscout(first_config, execution.chain_id)
-            second = self._normalize_blockchair(second_config, execution.chain_id)
-        else:
-            first = self._normalize_blockchair(first_config, execution.chain_id)
-            second = self._normalize_blockscout(second_config, execution.chain_id)
+        normalizers = {
+            "BLOCKSCOUT_V2": self._normalize_blockscout,
+            "BLOCKCHAIR_ETHEREUM": self._normalize_blockchair,
+            "ROUTESCAN_ETHEREUM": self._normalize_routescan,
+        }
+        first_normalizer = normalizers.get(first_config["kind"])
+        second_normalizer = normalizers.get(second_config["kind"])
+        if first_normalizer is None or second_normalizer is None:
+            return None
+        first = first_normalizer(first_config, execution.chain_id, documents)
+        second = second_normalizer(second_config, execution.chain_id, documents)
         if first is None or second is None or first != second:
             return None
         if any(key not in first for key in AUTH_FACT_KEYS) or first["schema"] != EVIDENCE_SCHEMA:
@@ -476,22 +576,40 @@ class FirewallV2(gl.contract.Contract):
         assert execution.state == "EXECUTION_COMMITTED"
         assert self._find_mandate(execution.mandate_id).state == "MANDATE_FROZEN"
 
-        def leader_fn() -> dict:
-            evidence = self._authenticated_source(execution)
+        def fetch_authenticated() -> str:
+            first_config = self._provider_config(execution.source_a)
+            second_config = self._provider_config(execution.source_b)
+            if first_config is None or second_config is None:
+                raise gl.vm.UserError("INDEPENDENT_EVIDENCE_SOURCE_CONFIG_INVALID")
+            documents = {}
+            document_keys = ("transaction", "block", "logs", "implementation", "transaction_payload", "receipt", "internal")
+            for config in (first_config, second_config):
+                for key in document_keys:
+                    url = config.get(key)
+                    if type(url) is not str or url == "" or url in documents:
+                        continue
+                    response = gl.nondet.web.get(url)
+                    if response.body is None:
+                        raise gl.vm.UserError("INDEPENDENT_EVIDENCE_SOURCE_UNAVAILABLE")
+                    try:
+                        document = json.loads(response.body.decode("utf-8"))
+                    except Exception:
+                        raise gl.vm.UserError("INDEPENDENT_EVIDENCE_SOURCE_MALFORMED")
+                    if type(document) is not dict:
+                        raise gl.vm.UserError("INDEPENDENT_EVIDENCE_SOURCE_NOT_OBJECT")
+                    documents[url] = document
+            evidence = self._authenticated_source(execution, documents)
             if evidence is None:
                 raise gl.vm.UserError("INDEPENDENT_EVIDENCE_UNAVAILABLE_OR_MISMATCH")
-            return evidence
+            # strict_eq executes this source retrieval independently on every
+            # validator and compares the canonical, normalized fact document.
+            return json.dumps(evidence, separators=(",", ":"), sort_keys=True)
 
-        def validator_fn(leader_result: object) -> bool:
-            try:
-                if not isinstance(leader_result, gl.vm.Return) or type(leader_result.calldata) is not dict:
-                    return False
-                independent = self._authenticated_source(execution)
-                return independent is not None and independent == leader_result.calldata
-            except Exception:
-                return False
-
-        evidence = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        evidence_raw = gl.eq_principle.strict_eq(fetch_authenticated)
+        try:
+            evidence = json.loads(evidence_raw)
+        except Exception:
+            evidence = None
         if type(evidence) is not dict:
             raise gl.vm.UserError("INDEPENDENT_EVIDENCE_INVALID")
         execution.evidence_json = json.dumps(evidence, separators=(",", ":"), sort_keys=True)

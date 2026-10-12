@@ -3,7 +3,7 @@
   "status": "CANDIDATE_NOT_DEPLOYED",
   "contract": {
     "source": "contracts/firewall_v2_candidate.py",
-    "source_sha256": "4eeb0f2d8218db4147b8a05d6be89105f381a96a50f73086ddcb630b8ad450ec",
+    "source_sha256": "8647f319dfc90060581937a8f6249561298cd662155992f1d92aaba0e88c1a60",
     "abi": "artifacts/firewall_v2_candidate.abi.json",
     "schema": "artifacts/firewall_v2_candidate.schema.json",
     "abi_sha256": "b313e74d96845f21eae755cdf60329f8c8306ff57f461a9459b42f70f2ae0eca",
@@ -36,20 +36,23 @@
       "implementation": "https://eth.blockscout.com/api/v2/smart-contracts/0xd9db270c1b5e3bd161e8c8503c55ceabee709552"
     },
     "provider_2": {
-      "operator": "Blockchair",
-      "kind": "BLOCKCHAIR_ETHEREUM",
-      "transaction": "https://api.blockchair.com/ethereum/dashboards/transaction/0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb?trace=true",
-      "block": "https://api.blockchair.com/ethereum/raw/block/22848240"
+      "operator": "Routescan",
+      "kind": "ROUTESCAN_ETHEREUM",
+      "transaction": "https://api.routescan.io/v2/network/mainnet/evm/1/transactions/0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "transaction_payload": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getTransactionByHash&txhash=0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "receipt": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getTransactionReceipt&txhash=0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "block": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getBlockByNumber&tag=0x15ca2f0&boolean=false",
+      "internal": "https://api.routescan.io/v2/network/mainnet/evm/1/internal-operations?txHash=0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb"
     },
     "operators_distinct": true,
     "not_two_urls_under_one_rpc_operator": true
   },
   "proofs": {
-    "live_positive_probe": "scripts/verify_v2_historical_evidence.py previously fetched both native schemas and produced identical canonical facts",
+    "live_positive_probe": "scripts/verify_v2_historical_evidence.py fetched Blockscout and Routescan native schemas and produced identical canonical facts",
     "tampered_expected_calldata": "0xdeadbeef",
     "tampered_result": "REJECTED_BY_AUTHENTICATED_SOURCE_BOUNDARY",
-    "current_recheck": "Blockscout returned HTTP 200; Blockchair returned HTTP 430 and the script failed closed without authenticating evidence",
-    "validator_path": "authenticate_evidence leader and validator both call _authenticated_source and compare normalized native facts",
+    "current_recheck": "Blockscout and Routescan returned HTTP 200; native transaction, receipt, block, logs, and internal-operation facts matched",
+    "validator_path": "authenticate_evidence uses strict_eq; leader and validator independently fetch every configured GET document, then _authenticated_source compares normalized native facts",
     "enforcement_proof": "scripts/test_safe_guard.mjs passed on local Ganache chain 31337; this is not a public EVM deployment"
   },
   "deployment": {
