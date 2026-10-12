@@ -23,7 +23,7 @@ type RpcTransaction = { hash: Hex; from: `0x${string}`; to: `0x${string}` | null
 type RpcReceipt = { transactionHash: Hex; blockHash: Hex; blockNumber: Hex; status: "0x0" | "0x1"; logs: readonly { address: `0x${string}`; topics: readonly Hex[]; data: Hex; logIndex: Hex }[] };
 type RpcLog = { address: `0x${string}`; topics: readonly Hex[]; data: Hex; blockHash: Hex; blockNumber: Hex; transactionHash: Hex; logIndex: Hex };
 
-export type EvmTargetEvidenceRequest = { readonly address: `0x${string}`; readonly expectedCodeHash?: Hex; readonly expectedImplementationAddress?: `0x${string}` | null; readonly expectedImplementationCodeHash?: Hex | null };
+export type EvmTargetEvidenceRequest = { readonly address: `0x${string}`; readonly proxyKind?: "EIP1967" | "SAFE_PROXY"; readonly expectedCodeHash?: Hex; readonly expectedImplementationAddress?: `0x${string}` | null; readonly expectedImplementationCodeHash?: Hex | null };
 export type EvmEvidenceRequest = {
   readonly chainId: number;
   readonly executionId: string;
@@ -43,6 +43,7 @@ export type EvmEvidence = {
   readonly status: "VERIFIED_PRE_EXECUTION" | "VERIFIED_POST_EXECUTION";
   readonly verificationStatus: "VERIFIED_PRE_EXECUTION" | "VERIFIED_POST_EXECUTION";
   readonly chainId: number;
+  readonly governanceContract: `0x${string}` | null;
   readonly executionId: string;
   readonly finalityAssumption: NonNullable<EvmEvidenceRequest["finality"]>;
   readonly primarySource: string;
@@ -60,7 +61,7 @@ export type EvmVerificationResult = { readonly ok: true; readonly evidence: EvmE
 
 function hexNumber(value: Hex | undefined, label: string): number { if (!value || !/^0x[0-9a-f]+$/i.test(value)) throw new Error(`RPC_FIELD_INVALID:${label}`); const parsed = Number(BigInt(value)); if (!Number.isSafeInteger(parsed)) throw new Error(`RPC_FIELD_UNSAFE:${label}`); return parsed; }
 function normalizeAddress(value: string | null): `0x${string}` | null { return value ? value.toLowerCase() as `0x${string}` : null; }
-function stable(value: unknown): string { return JSON.stringify(value, (_, item) => typeof item === "bigint" ? item.toString() : item); }
+function stable(value: unknown): string { return JSON.stringify(value, (_, item) => { if (typeof item === "bigint") return item.toString(); if (item && typeof item === "object" && !Array.isArray(item)) return Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))); return item; }); }
 function failure(status: EvmVerificationFailure["status"], reason: string, primary: RpcSource, secondary: RpcSource | null, capturedAt: string): EvmVerificationResult { return { ok: false, failure: { status, reason, primarySource: primary.name, secondarySource: secondary?.name ?? null, capturedAt } }; }
 function sourceFailure(error: unknown, primary: RpcSource, secondary: RpcSource | null, capturedAt: string): EvmVerificationResult {
   const reason = error instanceof Error ? error.message : "RPC_SOURCE_FAILURE";
@@ -93,8 +94,9 @@ async function loadSource(source: RpcSource, request: EvmEvidenceRequest) {
   for (const target of request.targets) {
     const code = await source.request<Hex>("eth_getCode", [target.address, tag]);
     const codeHash = keccak256(code);
-    const implementationWord = await source.request<Hex>("eth_getStorageAt", [target.address, EIP1967_IMPLEMENTATION_SLOT, tag]);
-    const adminWord = await source.request<Hex>("eth_getStorageAt", [target.address, EIP1967_ADMIN_SLOT, tag]);
+    const implementationSlot = target.proxyKind === "SAFE_PROXY" ? "0x0" : EIP1967_IMPLEMENTATION_SLOT;
+    const implementationWord = await source.request<Hex>("eth_getStorageAt", [target.address, implementationSlot, tag]);
+    const adminWord = target.proxyKind === "SAFE_PROXY" ? `0x${"00".repeat(32)}` as Hex : await source.request<Hex>("eth_getStorageAt", [target.address, EIP1967_ADMIN_SLOT, tag]);
     const implementationAddress = implementationWord && BigInt(implementationWord) !== 0n ? `0x${implementationWord.slice(-40)}`.toLowerCase() as `0x${string}` : null;
     const adminAddress = adminWord && BigInt(adminWord) !== 0n ? `0x${adminWord.slice(-40)}`.toLowerCase() as `0x${string}` : null;
     const implementationCode = implementationAddress ? await source.request<Hex>("eth_getCode", [implementationAddress, tag]) : null;
@@ -131,10 +133,12 @@ export async function verifyEvmEvidence(request: EvmEvidenceRequest, primary: Rp
     const tx = first.transaction;
     if (!tx || tx.to?.toLowerCase() !== request.expectedTransaction.to?.toLowerCase() || tx.input.toLowerCase() !== request.expectedTransaction.input.toLowerCase() || BigInt(tx.value) !== BigInt(request.expectedTransaction.value) || (request.expectedTransaction.from && tx.from.toLowerCase() !== request.expectedTransaction.from.toLowerCase()) || (request.expectedTransaction.nonce !== undefined && hexNumber(tx.nonce, "transaction.nonce") !== request.expectedTransaction.nonce)) return failure("EVIDENCE_MISMATCH", "TRANSACTION_PAYLOAD_MISMATCH", primary, secondary ?? null, capturedAt);
   }
+  if (request.governanceContract && (!first.transaction || first.transaction.to?.toLowerCase() !== request.governanceContract.toLowerCase())) return failure("EVIDENCE_MISMATCH", "GOVERNANCE_CONTRACT_MISMATCH", primary, secondary ?? null, capturedAt);
   if (first.receipt && first.receipt.status !== "0x1") return failure("EVIDENCE_MISMATCH", "TRANSACTION_EXECUTION_FAILED", primary, secondary ?? null, capturedAt);
   const verificationStatus = first.receipt ? "VERIFIED_POST_EXECUTION" as const : "VERIFIED_PRE_EXECUTION" as const;
   const transaction = first.transaction ? { hash: first.transaction.hash, from: first.transaction.from, to: first.transaction.to, input: first.transaction.input, value: BigInt(first.transaction.value).toString(10), nonce: hexNumber(first.transaction.nonce, "transaction.nonce") } : null;
   const receipt = first.receipt ? { transactionHash: first.receipt.transactionHash, blockHash: first.receipt.blockHash, blockNumber: hexNumber(first.receipt.blockNumber, "receipt.blockNumber"), status: first.receipt.status === "0x1" ? "SUCCESS" as const : "FAILED" as const, logs: first.receipt.logs } : null;
-  const canonical = { chainId: first.chainId, executionId: request.executionId, block: first.block, transaction, receipt, targets: first.targets, logs: first.logs, finalityAssumption: request.finality ?? "latest" } as unknown as CanonicalValue;
-  return { ok: true, evidence: { status: verificationStatus, verificationStatus, chainId: first.chainId, executionId: request.executionId, finalityAssumption: request.finality ?? "latest", primarySource: primary.name, secondarySource: secondary?.name ?? null, block: first.block, transaction, receipt, targets: first.targets, logs: first.logs, evidenceHash: hashCanonical(canonical), capturedAt } };
+  const governanceContract = request.governanceContract?.toLowerCase() as `0x${string}` | undefined;
+  const canonical = { chainId: first.chainId, governanceContract: governanceContract ?? null, executionId: request.executionId, block: first.block, transaction, receipt, targets: first.targets, logs: first.logs, finalityAssumption: request.finality ?? "latest" } as unknown as CanonicalValue;
+  return { ok: true, evidence: { status: verificationStatus, verificationStatus, chainId: first.chainId, governanceContract: governanceContract ?? null, executionId: request.executionId, finalityAssumption: request.finality ?? "latest", primarySource: primary.name, secondarySource: secondary?.name ?? null, block: first.block, transaction, receipt, targets: first.targets, logs: first.logs, evidenceHash: hashCanonical(canonical), capturedAt } };
 }

@@ -20,12 +20,20 @@ from genlayer.types import Address, u256
 from genlayer.types.keccak import Keccak256
 
 SEMANTIC_SCHEMA = "FIREWALL_MANDATE_V2"
-EVIDENCE_SCHEMA = "FIREWALL_EVM_EVIDENCE_V2"
+EVIDENCE_SCHEMA = "FIREWALL_EVM_EVIDENCE_V3"
 PERMIT_TTL = u256(86400)  # pyright: ignore[reportCallIssue]
 SEMANTIC_KEYS = (
     "intent_satisfied", "scope_expanded", "prohibited_effect_present",
     "economic_terms_consistent", "administrative_authority_changed",
     "implementation_behavior_consistent", "evidence_sufficient",
+)
+AUTH_FACT_KEYS = (
+    "schema", "chain_id", "governance_contract", "transaction_hash",
+    "block_number", "block_hash", "parent_block_hash", "finality",
+    "receipt_status", "execution_outcome", "transaction_to",
+    "transaction_value", "transaction_calldata", "targets", "values",
+    "calldatas", "operations", "safe_implementation_address",
+    "safe_execution_mode", "code_hashes", "implementation_hashes",
 )
 
 
@@ -109,6 +117,50 @@ def _exact_vector(value: object) -> dict | None:
     return value
 
 
+def _lower(value: object) -> str:
+    assert type(value) is str
+    return value.lower()
+
+
+def _hex_word(value: str, offset: u256) -> str:
+    # Offset is a zero-based ABI word index after the 4-byte selector.
+    start = 2 + 8 + int(offset) * 64
+    end = start + 64
+    assert start >= 2 and end <= len(value)
+    return value[start:end]
+
+
+def _safe_execution(input_data: str, safe: str) -> dict:
+    """Decode the supported Safe direct-owner execTransaction envelope.
+
+    This is deliberately narrow: direct CALL only, no MultiSend, no module
+    route, and no delegatecall. The transaction facts come from the providers;
+    this function only deterministically decodes the already fetched bytes.
+    """
+    assert type(input_data) is str and input_data.startswith("0x")
+    assert len(input_data) >= 2 + 8 + 10 * 64
+    assert input_data[2:10].lower() == "6a761202"  # pyright: ignore[reportCallIssue]  # Safe.execTransaction
+    safe_to = "0x" + _hex_word(input_data, u256(0))[24:]  # pyright: ignore[reportCallIssue]
+    value = str(int(_hex_word(input_data, u256(1)), 16))  # pyright: ignore[reportCallIssue]
+    data_offset = u256(int(_hex_word(input_data, u256(2)), 16))  # pyright: ignore[reportCallIssue]
+    operation = int(_hex_word(input_data, u256(3)), 16)  # pyright: ignore[reportCallIssue]
+    assert _lower(safe_to) != "0x" + "00" * 20
+    assert _lower(safe_to) != _lower(safe)
+    assert operation == 0
+    assert int(data_offset) % 32 == 0
+    data_length = int(_hex_word(input_data, u256(int(data_offset) // 32)), 16)  # pyright: ignore[reportCallIssue]
+    data_start = 2 + 8 + int(data_offset) * 2 + 64
+    data_end = data_start + data_length * 2
+    assert data_end <= len(input_data)
+    calldata = "0x" + input_data[data_start:data_end]
+    return {"target": _lower(safe_to), "value": value, "calldata": calldata, "operation": operation}
+
+
+def _keccak_hex(value: str) -> str:
+    assert type(value) is str and value.startswith("0x")
+    return "0x" + Keccak256(bytes.fromhex(value[2:])).digest().hex()
+
+
 class FirewallV2(gl.contract.Contract):
     next_mandate: u256
     next_execution: u256
@@ -154,39 +206,172 @@ class FirewallV2(gl.contract.Contract):
         assert False
         return self.adjudications[0]
 
-    def _source(self, url: str) -> dict | None:
+    def _source_json(self, url: str) -> dict | None:
         try:
             response = gl.nondet.web.get(url)
             if response.body is None:
                 return None
-            body = response.body.decode("utf-8")
-            value = json.loads(body)
+            value = json.loads(response.body.decode("utf-8"))
             return value if type(value) is dict else None
         except Exception:
             return None
 
+    def _provider_config(self, encoded: str) -> dict | None:
+        try:
+            config = json.loads(encoded)
+            required = ("kind", "chain_id", "transaction", "block")
+            if type(config) is not dict or any(type(config.get(key)) is not str or config.get(key) == "" for key in required):
+                return None
+            assert int(config["chain_id"]) > 0
+            if config.get("kind") == "BLOCKSCOUT_V2":
+                if type(config.get("logs")) is not str or type(config.get("implementation")) is not str:
+                    return None
+            elif config.get("kind") != "BLOCKCHAIR_ETHEREUM":
+                return None
+            return config
+        except Exception:
+            return None
+
+    def _canonical_safe_facts(self, chain_id: u256, tx_hash: str, block_number: int, block_hash: str, parent_hash: str, safe: str, raw_input: str, implementation: str, target: dict, receipt_status: str, execution_outcome: str) -> dict | None:
+        try:
+            assert receipt_status == "SUCCESS"
+            assert execution_outcome == "SAFE_EXECUTION_SUCCESS"
+            assert _lower(safe) == safe
+            assert _lower(implementation) == implementation
+            assert raw_input.startswith("0x")
+            assert len(raw_input) > 10
+            assert target["operation"] == 0
+            return {
+                "schema": EVIDENCE_SCHEMA,
+                "chain_id": int(chain_id),
+                "governance_contract": safe,
+                "transaction_hash": _lower(tx_hash),
+                "block_number": int(block_number),
+                "block_hash": _lower(block_hash),
+                "parent_block_hash": _lower(parent_hash),
+                "finality": "HISTORICAL",
+                "receipt_status": receipt_status,
+                "execution_outcome": execution_outcome,
+                "transaction_to": safe,
+                "transaction_value": "0",
+                "transaction_calldata": raw_input.lower(),
+                "targets": [target["target"]],
+                "values": [target["value"]],
+                "calldatas": [target["calldata"]],
+                "operations": [target["operation"]],
+                "safe_implementation_address": implementation,
+                "safe_execution_mode": "SAFE_DIRECT_CALL_ONLY",
+                # The historical case is a native transfer with empty target
+                # calldata. No target contract bytecode is invoked; the Safe
+                # proxy identity is bound above using Safe-specific evidence.
+                "code_hashes": [],
+                "implementation_hashes": [],
+            }
+        except Exception:
+            return None
+
+    def _normalize_blockscout(self, config: dict, chain_id: u256) -> dict | None:
+        tx = self._source_json(config["transaction"])
+        block = self._source_json(config["block"])
+        logs = self._source_json(config["logs"])
+        implementation = self._source_json(config["implementation"])
+        try:
+            assert tx is not None and block is not None and logs is not None and implementation is not None
+            tx_hash = _lower(tx["hash"])
+            safe = _lower(tx["to"]["hash"])
+            assert tx["status"] == "ok" and tx["result"] == "success" and str(tx["value"]) == "0"
+            assert int(tx["block_number"]) == int(block["height"])
+            assert str(config["chain_id"]) == str(chain_id)
+            assert len(tx_hash) == 66 and len(_lower(block["hash"])) == 66
+            assert type(logs["items"]) is list and len(logs["items"]) >= 1
+            assert all(_lower(item["block_hash"]) == _lower(block["hash"]) for item in logs["items"])
+            assert implementation["is_verified"] is True
+            assert str(implementation["name"]).lower() == "gnosissafe"
+            impls = tx["to"]["implementations"]
+            assert type(impls) is list and len(impls) == 1
+            impl = _lower(impls[0]["address_hash"])
+            success_logs = logs["items"]
+            assert type(success_logs) is list and len(success_logs) >= 1
+            assert any(item["transaction_hash"].lower() == tx_hash and str(item["decoded"]["method_call"]).startswith("ExecutionSuccess") for item in success_logs)
+            target = _safe_execution(tx["raw_input"], safe)
+            return self._canonical_safe_facts(chain_id, tx_hash, int(tx["block_number"]), _lower(block["hash"]), _lower(block["parent_hash"]), safe, tx["raw_input"], impl, target, "SUCCESS", "SAFE_EXECUTION_SUCCESS")
+        except Exception:
+            return None
+
+    def _normalize_blockchair(self, config: dict, chain_id: u256) -> dict | None:
+        tx_payload = self._source_json(config["transaction"])
+        block_payload = self._source_json(config["block"])
+        try:
+            assert tx_payload is not None and block_payload is not None
+            assert str(config["chain_id"]) == str(chain_id)
+            data = tx_payload["data"]
+            assert type(data) is dict and len(data) == 1
+            row = None
+            for key in data:
+                row = data[key]
+            assert row is not None
+            transaction = row["transaction"]
+            assert transaction is not None
+            block_id = str(transaction["block_id"])
+            block_record = block_payload["data"][block_id]
+            block = block_record.get("block", block_record.get("decoded_raw_block"))
+            assert block is not None
+            tx_hash = _lower(transaction["hash"])
+            safe = _lower(transaction["recipient"])
+            assert transaction["failed"] is False and str(transaction["value"]) == "0"
+            raw_input = "0x" + transaction["input_hex"]
+            target = _safe_execution(raw_input, safe)
+            calls = row.get("calls")
+            assert type(calls) is list
+            delegatecalls = [item for item in calls if item.get("depth") == 1 and item.get("type") == "delegatecall"]
+            assert len(delegatecalls) == 1
+            impl = _lower(delegatecalls[0]["recipient"])
+            direct_calls = [item for item in calls if item.get("depth") == 2 and item.get("type") == "call"]
+            assert len(direct_calls) == 1
+            assert _lower(direct_calls[0]["recipient"]) == target["target"]
+            assert str(direct_calls[0]["value"]) == target["value"]
+            direct_input = str(direct_calls[0]["input_hex"]).lower()
+            assert (direct_input if direct_input.startswith("0x") else "0x" + direct_input) == target["calldata"]
+            block_number = int(block["id"]) if type(block.get("id")) is int else int(block["number"], 16)
+            parent_hash = _lower(block.get("parent_hash", block.get("parentHash")))
+            assert block_number == int(block_id)
+            assert type(parent_hash) is str and len(parent_hash) == 66
+            return self._canonical_safe_facts(chain_id, tx_hash, block_number, _lower(block["hash"]), parent_hash, safe, raw_input, impl, target, "SUCCESS", "SAFE_EXECUTION_SUCCESS")
+        except Exception:
+            return None
+
     def _authenticated_source(self, execution: Execution) -> dict | None:
-        # URLs are configuration, never proof. Both complete responses are
-        # fetched and must describe the exact committed package.
+        # Source URLs/configuration are never proof. Each validator fetches
+        # every native provider document, normalizes it, and compares the
+        # resulting authenticated facts before consensus sees them.
         if execution.source_a != self.trusted_source_a or execution.source_b != self.trusted_source_b or execution.source_a == execution.source_b:
             return None
-        first = self._source(execution.source_a)
-        second = self._source(execution.source_b)
-        if first is None or second is None or first != second:
-            return None
-        required = ("schema", "chain_id", "block_number", "block_hash", "finality", "targets", "values", "calldatas", "code_hashes", "implementation_hashes", "receipt_status")
-        if any(key not in first for key in required) or first["schema"] != EVIDENCE_SCHEMA:
-            return None
-        if str(first["chain_id"]) != str(execution.chain_id):
+        first_config = self._provider_config(execution.source_a)
+        second_config = self._provider_config(execution.source_b)
+        if first_config is None or second_config is None or first_config.get("kind") == second_config.get("kind"):
             return None
         try:
             expected = json.loads(execution.expected_facts)
             if type(expected) is not dict:
                 return None
-            for key in ("chain_id", "targets", "values", "calldatas", "code_hashes", "implementation_hashes"):
-                if first.get(key) != expected.get(key):
-                    return None
         except Exception:
+            return None
+        if first_config["kind"] == "BLOCKSCOUT_V2":
+            first = self._normalize_blockscout(first_config, execution.chain_id)
+            second = self._normalize_blockchair(second_config, execution.chain_id)
+        else:
+            first = self._normalize_blockchair(first_config, execution.chain_id)
+            second = self._normalize_blockscout(second_config, execution.chain_id)
+        if first is None or second is None or first != second:
+            return None
+        if any(key not in first for key in AUTH_FACT_KEYS) or first["schema"] != EVIDENCE_SCHEMA:
+            return None
+        if expected.get("mandate_id") != execution.mandate_id:
+            return None
+        for key in AUTH_FACT_KEYS:
+            if first.get(key) != expected.get(key):
+                return None
+        if first["chain_id"] != int(execution.chain_id) or first["receipt_status"] != "SUCCESS" or first["finality"] != "HISTORICAL":
             return None
         return first
 
@@ -268,6 +453,16 @@ class FirewallV2(gl.contract.Contract):
         try:
             facts = json.loads(expected_facts)
             assert type(facts) is dict and str(facts.get("chain_id")) == str(chain_id)
+            assert facts.get("mandate_id") == mandate.mandate_id
+            assert int(mandate.governance_chain_id) == int(chain_id)
+            assert facts.get("schema") == EVIDENCE_SCHEMA
+            assert all(key in facts for key in AUTH_FACT_KEYS)
+            assert _lower(str(facts.get("governance_contract"))) == _lower(mandate.governance_contract)
+            assert facts.get("governance_contract") == facts.get("transaction_to")
+            assert facts.get("receipt_status") == "SUCCESS"
+            assert facts.get("execution_outcome") == "SAFE_EXECUTION_SUCCESS"
+            assert facts.get("finality") == "HISTORICAL"
+            assert facts.get("safe_execution_mode") == "SAFE_DIRECT_CALL_ONLY"
         except Exception:
             assert False
         execution_id = self._id("EXE", self.next_execution)

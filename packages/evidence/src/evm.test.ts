@@ -57,4 +57,38 @@ describe("independent EVM evidence verifier", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure.reason).toBe("TRANSACTION_EXECUTION_FAILED");
   });
+
+  it("canonicalizes provider object-key order and verifies Safe singleton storage", async () => {
+    const secondary = source("secondary");
+    const original = secondary.request;
+    secondary.request = async <T>(method: string, params: readonly unknown[]) => {
+      const value = await original(method, params);
+      if (method === "eth_getTransactionReceipt" && value && typeof value === "object") {
+        const receiptValue = value as Record<string, unknown>;
+        return { logs: receiptValue.logs, status: receiptValue.status, blockNumber: receiptValue.blockNumber, blockHash: receiptValue.blockHash, transactionHash: receiptValue.transactionHash } as T;
+      }
+      return value as T;
+    };
+    expect((await verifyEvmEvidence(request, source("primary"), secondary)).ok).toBe(true);
+
+    const singleton = "0x0000000000000000000000000000000000000009" as `0x${string}`;
+    const safe = "0x0000000000000000000000000000000000000008" as `0x${string}`;
+    const safeTx = { ...tx, to: safe };
+    const safeSource = (name: string): RpcSource => ({ name, url: `https://${name}.example/rpc`, async request(method, params) {
+      if (method === "eth_chainId") return "0x1" as never;
+      if (method === "eth_getBlockByNumber") return block as never;
+      if (method === "eth_getTransactionByHash") return safeTx as never;
+      if (method === "eth_getTransactionReceipt") return receipt as never;
+      if (method === "eth_getCode") return (params[0] === singleton ? code : "0x6001600055") as never;
+      if (method === "eth_getStorageAt") return (params[1] === "0x0" ? `0x${"00".repeat(12)}${singleton.slice(2)}` : `0x${"00".repeat(32)}`) as never;
+      if (method === "eth_getLogs") return [] as never;
+      throw new Error(`unexpected method ${method}`);
+    } });
+    const safeResult = await verifyEvmEvidence({ ...request, governanceContract: safe, expectedTransaction: { ...request.expectedTransaction, to: safe }, targets: [{ address: safe, proxyKind: "SAFE_PROXY", expectedImplementationAddress: singleton, expectedImplementationCodeHash: keccak256(code) }] }, safeSource("safe-primary"), safeSource("safe-secondary"));
+    expect(safeResult.ok).toBe(true);
+
+    const wrongGovernance = await verifyEvmEvidence({ ...request, governanceContract: "0x0000000000000000000000000000000000000003" }, source("primary"), source("secondary"));
+    expect(wrongGovernance.ok).toBe(false);
+    if (!wrongGovernance.ok) expect(wrongGovernance.failure.reason).toBe("GOVERNANCE_CONTRACT_MISMATCH");
+  });
 });
