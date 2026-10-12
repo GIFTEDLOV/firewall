@@ -61,9 +61,25 @@ class _Web:
 
 def _load_candidate():
     genlayer = types.ModuleType("genlayer")
+    gl = types.SimpleNamespace(
+        Contract=_Contract,
+        public=_Public(),
+        nondet=types.SimpleNamespace(web=_Web()),
+        eq_principle=types.SimpleNamespace(strict_eq=lambda function: function),
+        vm=types.SimpleNamespace(
+            UserError=RuntimeError,
+            run_nondet_unsafe=lambda leader, validator: leader(),
+        ),
+        message=types.SimpleNamespace(sender_address="0x" + "11" * 20),
+    )
+    genlayer.gl = gl
+    genlayer.Contract = _Contract
+    genlayer.public = gl.public
+    genlayer.nondet = gl.nondet
+    genlayer.eq_principle = gl.eq_principle
+    genlayer.vm = gl.vm
+    genlayer.message = gl.message
     genlayer.contract = types.SimpleNamespace(Contract=_Contract)
-    genlayer.public = _Public()
-    genlayer.nondet = types.SimpleNamespace(web=_Web())
     genlayer.storage = types.ModuleType("genlayer.storage")
     genlayer.storage.DynArray = _Generic
     genlayer.storage.allow = lambda value: value
@@ -72,6 +88,11 @@ def _load_candidate():
     genlayer.types.u256 = int
     genlayer.types.keccak = types.ModuleType("genlayer.types.keccak")
     genlayer.types.keccak.Keccak256 = lambda value: hashlib.sha3_256(value)
+    genlayer.Address = str
+    genlayer.DynArray = _Generic
+    genlayer.allow_storage = lambda value: value
+    genlayer.Keccak256 = genlayer.types.keccak.Keccak256
+    genlayer.u256 = int
     sys.modules.update(
         {
             "genlayer": genlayer,

@@ -15,8 +15,12 @@ from pathlib import Path
 
 
 def inject_message(vm, loader) -> None:
-    calldata = loader.import_calldata()
-    address = loader.import_address()
+    try:
+        calldata = loader.import_calldata()
+        address = loader.import_address()
+    except AttributeError:
+        from genlayer.py import calldata
+        from genlayer.py.types import Address as address
     to_address = lambda value: value if not isinstance(value, bytes) else address(value)
     message = {
         "contract_address": to_address(vm._contract_address),
@@ -46,18 +50,24 @@ def main() -> int:
     contract_path = Path(sys.argv[1]).resolve()
     output_path = Path(sys.argv[2]).resolve()
 
-    from gltest.direct import loader, sdk_loader
+    from gltest.direct import loader, sdk_loader, wasi_mock
     from gltest.direct.vm import VMContext
 
-    sdk_loader.setup_sdk_paths(contract_path, "v0.6.0-rc2")
+    sdk_version = os.environ.get("FIREWALL_GENVM_VERSION", "v0.6.0-rc2")
+    sdk_loader.setup_sdk_paths(contract_path, sdk_version)
     vm = VMContext()
     vm.sender = b"\x22" * 20
     vm._contract_address = b"\x11" * 20
+    wasi_mock.set_vm(vm)
+    sys.modules["_genlayer_wasi"] = wasi_mock
     loader._patch_get_type_hints_for_pep695()
     inject_message(vm, loader)
     module = loader._load_module(contract_path)
     contract = loader._find_contract_class(module)
-    from genlayer._internal.get_schema import get_schema
+    try:
+        from genlayer._internal.get_schema import get_schema
+    except ModuleNotFoundError:
+        from genlayer.py.get_schema import get_schema
 
     schema = get_schema(contract)
     output_path.parent.mkdir(parents=True, exist_ok=True)

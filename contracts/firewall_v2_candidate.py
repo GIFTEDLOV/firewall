@@ -1,4 +1,4 @@
-# { "Depends": "py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0" }
+# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 """Firewall V2 candidate.
 
@@ -14,10 +14,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-import genlayer as gl
-from genlayer.storage import DynArray, allow as allow_storage
-from genlayer.types import Address, u256
-from genlayer.types.keccak import Keccak256
+from genlayer import Address, DynArray, Keccak256, allow_storage, gl, u256
 
 SEMANTIC_SCHEMA = "FIREWALL_MANDATE_V2"
 EVIDENCE_SCHEMA = "FIREWALL_EVM_EVIDENCE_V3"
@@ -161,7 +158,7 @@ def _keccak_hex(value: str) -> str:
     return "0x" + Keccak256(bytes.fromhex(value[2:])).digest().hex()
 
 
-class FirewallV2(gl.contract.Contract):
+class FirewallV2(gl.Contract):
     next_mandate: u256
     next_execution: u256
     next_adjudication: u256
