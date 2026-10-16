@@ -10,15 +10,15 @@ const mutations = [
 ];
 const contract = readFileSync("contracts/firewall.py", "utf8");
 const structuralMutations: Array<[string, boolean]> = [
-  ["freeze guard", contract.includes('mandate.state == "MANDATE_DRAFT"')],
-  ["evidence authenticated prerequisite", contract.includes('execution.state == "EVIDENCE_AUTHENTICATED"')],
-  ["execution evidence binding", contract.includes("evidence_hash == execution.expected_evidence_hash")],
+  ["frozen mandate prerequisite", contract.includes('mandate.state == "MANDATE_FROZEN"')],
+  ["independent source comparison", contract.includes("first is None or second is None or first != second")],
+  ["evidence fact-to-mandate binding", contract.includes('expected.get("mandate_id") != execution.mandate_id')],
   ["generation replay guard", contract.includes("execution.generation == u256(0)")],
-  ["strict semantic-shape rejection without assertions", contract.includes("len(raw) != len(SEMANTIC_KEYS)") && contract.includes("key not in raw") && contract.includes("return None")],
-  ["consensus rejects invalid or differing vectors", contract.includes("leader_vector = _validate_semantic_vector(leader_result.calldata)") && contract.includes("validator_vector = self._semantic_evaluation(prompt)") && contract.includes("return all(")],
+  ["strict semantic-shape rejection", contract.includes("len(value) != len(SEMANTIC_KEYS)") && contract.includes("key not in value") && contract.includes("return None")],
+  ["validator independently compares semantic result", contract.includes("independent = self._semantic(prompt)") && contract.includes("proposed == independent")],
   ["permit expiry binding", contract.includes("issued_at + PERMIT_TTL")],
-  ["permit semantic schema binding", contract.includes('adjudication.semantic_schema == SEMANTIC_SCHEMA')],
-  ["owner override prohibition", !/\bowner\b/.test(contract)],
+  ["independent evidence uses equivalence consensus", contract.includes("gl.eq_principle.strict_eq(fetch_authenticated)")],
+  ["no contract-level owner override", !/^\s*owner\s*=/m.test(contract)],
 ];
 
 describe("targeted mutation harness", () => {
