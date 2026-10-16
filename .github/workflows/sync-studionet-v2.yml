@@ -1,0 +1,38 @@
+name: Verify and sync deployed Studionet V2 source
+on:
+  push:
+    branches:
+      - 'steward/studionet-v2-source-evidence'
+    paths:
+      - '.github/workflows/sync-studionet-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync-deployed-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install stable GenLayer SDK
+        run: npm install --prefix /tmp/genlayer-sdk --no-audit --no-fund genlayer-js@1.1.8
+      - name: Verify on-chain source SHA and copy exact code/schema
+        env:
+          VERIFIED_GENLAYER_ADDRESS: '0x7Ab4Dc9B84f3fDEB90e9795976065F42Ea0b9528'
+          VERIFIED_SOURCE_SHA256: 'b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163'
+          VERIFIED_SOURCE_FILE: 'contracts/firewall_studionet_v2_verified.py'
+          VERIFIED_SCHEMA_FILE: 'artifacts/firewall_studionet_v2.schema.json'
+        run: node scripts/sync_studionet_source.mjs
+      - name: Commit verified source to steward branch only
+        env:
+          TARGET_BRANCH: '${{ github.ref_name }}'
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then echo "No changes"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "contracts/firewall_studionet_v2_verified.py" "artifacts/firewall_studionet_v2.schema.json"
+          git commit -m "fix(steward): preserve exact verified LIVE Studionet V2 source and ABI"
+          git push origin "HEAD:$TARGET_BRANCH"
