@@ -1,6 +1,6 @@
 {
   "evidenceScope": "LOCAL_GANACHE_ONLY_NOT_PUBLIC_LIVE_ENFORCEMENT",
-  "checkedAt": "2026-10-18T22:54:47.087Z",
+  "checkedAt": "2026-10-18T23:04:44.665Z",
   "status": "PASS",
   "validExecution": true,
   "nonceHookOrder": "Safe pre-increments nonce before checkTransaction; the Guard maps current nonce minus one to signed pre-execution nonce",

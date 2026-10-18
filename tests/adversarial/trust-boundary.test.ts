@@ -12,9 +12,10 @@ describe("Gate 2 trust boundary", () => {
     expect(contract).not.toMatch(/^\s*owner\s*=/m);
     expect(contract).not.toContain("record_adjudication");
     expect(contract).toContain("def adjudicate_execution(self, execution_id: str)");
-    expect(contract).toContain("gl.vm.run_nondet(leader_fn, validator_fn)");
+    expect(contract).toContain("gl.vm.run_nondet_unsafe(leader_fn, validator_fn)");
     expect(contract).toContain("def validator_fn(leader_result: object)");
-    expect(contract).toContain("assert adjudication.verdict == \"EXECUTION_PERMITTED\"");
+    expect(contract).toContain("gl.eq_principle.strict_eq(fetch_authenticated)");
+    expect(contract).toContain("adjudication.verdict == \"EXECUTION_PERMITTED\"");
   });
 
   it("rejects prompt injection, fake authority, fake JSON and malformed schema", () => {
