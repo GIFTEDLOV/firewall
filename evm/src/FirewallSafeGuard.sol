@@ -103,20 +103,6 @@ contract FirewallSafeGuard is IFirewallTransactionGuard {
         return keccak256(abi.encodePacked(hex"1901", domainSeparator(), structHash));
     }
 
-    function publishPermit(ProspectivePermit calldata p, bytes calldata signature) external {
-        if (p.nonce != IFirewallSafeNonce(safe).nonce()
-            || p.expiresAt <= block.timestamp || p.intentId == bytes32(0)
-            || p.genlayerPermitHash == bytes32(0) || p.target == address(0)
-            || p.operation != uint8(Operation.Call) || permits[p.nonce].active
-            || usedIntentIds[p.intentId]
-        ) revert InvalidPermit();
-
-        bytes32 typedDigest = digest(p);
-        if (_recover(typedDigest, signature) != attestor) revert InvalidSignature();
-        permits[p.nonce] = ActivePermit(typedDigest, p.intentId, p.expiresAt, true);
-        emit ProspectivePermitPublished(p.nonce, p.intentId, typedDigest);
-    }
-
     function checkTransaction(
         address to, uint256 value, bytes memory data, Operation operation,
         uint256, uint256, uint256, address, address payable, bytes memory, address
