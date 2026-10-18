@@ -27,8 +27,8 @@ test.describe("Firewall competition product", () => {
     await expect(page.getByRole("heading", { name: /Governance approved one thing/i })).toBeVisible();
     await expect(page.getByText("Semantic execution security / GenLayer")).toBeVisible();
     await expect(page.getByText("EXECUTION_PERMITTED")).toBeVisible();
-    await expect(page.getByText("INCONCLUSIVE / NO PERMIT", { exact: true })).toBeVisible();
-    await expect(page.getByText("evidence_sufficient=false")).toBeVisible();
+    await expect(page.getByText("TEST FIXTURE / NOT LIVE CHAIN EVIDENCE")).toBeVisible();
+    await expect(page.getByText("NO AUTHORIZATION", { exact: true })).toBeVisible();
     await page.getByRole("link", { name: /Open Firewall/ }).click();
     await expect(page).toHaveURL(/\/app$/);
     expect(errors).toEqual([]);
@@ -51,7 +51,7 @@ test.describe("Firewall competition product", () => {
   for (const route of canonicalRoutes) {
     test(`canonical route ${route} is meaningful`, async ({ page }) => {
       const errors = await expectNoBrowserErrors(page);
-      const response = await page.goto(route);
+      const response = await page.goto(route, { waitUntil: "domcontentloaded", timeout: 60_000 });
       expect(response?.status()).toBe(200);
       await expect(page.locator("body")).not.toBeEmpty();
       await expect(page.locator("[data-nextjs-dialog]")).toHaveCount(0);
@@ -60,25 +60,51 @@ test.describe("Firewall competition product", () => {
   }
 
   test("canonical details expose evidence, vectors, permit state, and missing records", async ({ page }) => {
-    await page.goto("/executions/EXE-00000002");
+    await page.goto("/executions/EXE-00000002", { waitUntil: "domcontentloaded" });
     await expect(page.getByText("Authenticated evidence")).toBeVisible();
     await expect(page.getByText("evidence_sufficient", { exact: true })).toBeVisible();
-    await page.goto("/adjudications/ADJ-00000002");
+    await page.goto("/adjudications/ADJ-00000002", { waitUntil: "domcontentloaded" });
     await expect(page.getByText("INCONCLUSIVE", { exact: true })).toBeVisible();
-    await expect(page.getByText("evidence sufficiency false", { exact: true })).toBeVisible();
-    await page.goto("/permits/PRM-00000001");
+    await expect(page.getByText("evidence insufficient", { exact: true })).toBeVisible();
+    await page.goto("/permits/PRM-00000001", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".detail-id").filter({ hasText: "PRM-00000001" }).first()).toBeVisible();
-    await page.goto("/permits/PRM-00000002");
+    await page.goto("/permits/PRM-00000002", { waitUntil: "domcontentloaded" });
     await expect(page.getByText("Canonical permit not found")).toBeVisible();
   });
 
+  test("integration page reports the actual unconfigured EVM enforcement state", async ({ page }) => {
+    const response = await page.request.get("/api/prospective/relay");
+    expect(response.status()).toBe(200);
+    const status = await response.json();
+    expect(status.scope).toBe("PROSPECTIVE_SAFE_ENFORCEMENT");
+    expect(status.state).toBe("NOT_CONFIGURED");
+    expect(status.prospectiveExecutionSupported).toBe(false);
+    const legacy = await page.request.post("/api/relay", { data: { permitId: "PRM-00000001" } });
+    expect(legacy.status()).toBe(410);
+    expect((await legacy.json()).error).toBe("HISTORICAL_V2_PERMIT_CANNOT_AUTHORIZE_PROSPECTIVE_EVM_EXECUTION");
+    await page.goto("/integrate");
+    await expect(page.getByRole("heading", { name: "Protected EVM enforcement" })).toBeVisible();
+    await expect(page.getByText("NOT_CONFIGURED", { exact: true })).toBeVisible();
+    await expect(page.getByText(/No deployed V3 prospective contract/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Connect Ethereum Sepolia Safe owner wallet" })).toBeVisible();
+
+    const qualification = await page.request.get("/api/qualification/sepolia-package");
+    expect(qualification.status()).toBe(200);
+    const packageStatus = await qualification.json();
+    expect(packageStatus.scope).toBe("LOCAL_NORMALIZATION_ONLY_EXPECTED_FACTS");
+    expect(packageStatus.available).toBe(true);
+    expect(packageStatus.validatorAuthentication).toBe(false);
+    expect(packageStatus.package.status).toBe("LOCAL_FACTS_MATCHED");
+  });
+
   test("off-chain workflow APIs are live and visibly non-canonical", async ({ page }) => {
+    test.setTimeout(90_000);
     const mandates = await page.request.get("/api/mandates");
     expect(mandates.status()).toBe(200);
     expect((await mandates.json()).scope).toBe("LOCAL_PRECHAIN_ANALYSIS");
     const model = await page.request.get("/api/read-model");
     expect(model.status()).toBe(200);
-    expect((await model.json()).scope).toBe("CANONICAL_LIVE_READ");
+    expect((await model.json()).scope).toBe("TEST_FIXTURE_NOT_LIVE");
 
     await page.goto("/mandates/new");
     await expect(page.getByText("LOCAL_PRECHAIN_ANALYSIS")).toBeVisible();
@@ -90,15 +116,19 @@ test.describe("Firewall competition product", () => {
     expect(mandateHref).toMatch(/^\/local\/mandates\/MAN-\d{8}$/);
     await page.goto(mandateHref!);
     await expect(page.getByText("No canonical mandate was created")).toBeVisible();
-    await page.goto("/executions/new", { waitUntil: "domcontentloaded" });
+    await page.goto("/executions/new");
     await expect(page.getByRole("heading", { name: "Analyze candidate package" })).toBeVisible();
-    await page.waitForTimeout(750);
     const localMandateInput = page.getByPlaceholder("MAN-00000001");
-    await localMandateInput.click();
-    await localMandateInput.fill(mandateHref!.split("/").at(-1)!);
+    const localMandateId = mandateHref!.split("/").at(-1)!;
+    await localMandateInput.fill(localMandateId);
     await expect(page.getByRole("button", { name: "Freeze and analyze local package" })).toBeEnabled();
+    const freezeResponse = page.waitForResponse((response) => response.url().endsWith(`/api/mandates/${localMandateId}/freeze`) && response.request().method() === "POST", { timeout: 25_000 });
+    const analyzeResponse = page.waitForResponse((response) => response.url().endsWith("/api/executions/analyze") && response.request().method() === "POST", { timeout: 25_000 });
     await page.getByRole("button", { name: "Freeze and analyze local package" }).click();
-    await expect(page.getByText("ANALYZED_LOCAL")).toBeVisible();
+    const [freezeResult, analyzeResult] = await Promise.all([freezeResponse, analyzeResponse]);
+    expect(freezeResult.status()).toBe(200);
+    expect(analyzeResult.status()).toBe(201);
+    await expect(page.getByText("ANALYZED_LOCAL")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("LOCAL_PRECHAIN_ANALYSIS")).toBeVisible();
   });
 

@@ -13,10 +13,12 @@
     "@firewall/evidence": "workspace:*",
     "@firewall/genlayer-client": "workspace:*",
     "@firewall/indexer": "workspace:*",
+    "@firewall/safe-enforcement": "workspace:*",
     "@firewall/workflow": "workspace:*",
     "next": "15.5.27",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "viem": "2.21.54"
   },
   "devDependencies": {
     "@types/node": "24.7.0",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CanonicalAdjudication, CanonicalExecution, CanonicalLiveReadModel, CanonicalPermit } from "@firewall/genlayer-client";
+import type { CanonicalAdjudication, CanonicalLiveReadModel, CanonicalPermit } from "@firewall/genlayer-client";
 
 const semanticLabels = [
   ["intentSatisfied", "intent_satisfied"],
@@ -16,7 +16,7 @@ function time(value: number): string {
 }
 
 function short(value: string): string {
-  return value.length > 28 ? `${value.slice(0, 12)}…${value.slice(-10)}` : value;
+  return value.length > 28 ? `${value.slice(0, 12)}...${value.slice(-10)}` : value;
 }
 
 export function CanonicalUnavailable({ error }: { readonly error: string }) {
@@ -24,18 +24,14 @@ export function CanonicalUnavailable({ error }: { readonly error: string }) {
 }
 
 export function CanonicalNetwork({ model }: { readonly model: CanonicalLiveReadModel }) {
-  return <div className="canonical-network"><span className="status-dot" />STUDIO-DEV · CHAIN {model.config.chainId} · READ ONLY · {short(model.config.contractAddress)}</div>;
+  const live = model.source === "LIVE_CANONICAL";
+  return <div className="canonical-network"><span className="status-dot" />{live ? "STUDIONET" : "TEST FIXTURE"} / CHAIN {model.config.chainId} / {live ? "CANONICAL READ" : "SIMULATED TEST DATA"} / {short(model.config.contractAddress)}</div>;
 }
 
 export function CanonicalStats({ model }: { readonly model: CanonicalLiveReadModel }) {
-  const stats = [
-    ["Frozen mandates", model.mandates.length, "canonical contract"],
-    ["Executions", model.executions.length, "canonical contract"],
-    ["Evidence records", model.evidence.length, "canonical contract"],
-    ["Adjudications", model.adjudications.length, "canonical contract"],
-    ["Permits", model.permits.length, "canonical contract"],
-  ] as const;
-  return <div className="grid stats canonical-stats">{stats.map(([label, value, note]) => <div className="panel stat" key={label}><div className="stat-label">{label}</div><div className="stat-value">{value}</div><div className="stat-note">{note}</div></div>)}</div>;
+  const note = model.source === "LIVE_CANONICAL" ? "canonical contract" : "test fixture";
+  const stats = [["Mandates", model.mandates.length], ["Executions", model.executions.length], ["Authenticated records", model.evidence.length], ["Adjudications", model.adjudications.length], ["Permits", model.permits.length]] as const;
+  return <div className="grid stats canonical-stats">{stats.map(([label, value]) => <div className="panel stat" key={label}><div className="stat-label">{label}</div><div className="stat-value">{value}</div><div className="stat-note">{note}</div></div>)}</div>;
 }
 
 export function SemanticMatrix({ adjudication }: { readonly adjudication: CanonicalAdjudication }) {
@@ -51,9 +47,9 @@ export function CanonicalOutcome({ adjudication, permit }: { readonly adjudicati
     [adjudication.economicTermsConsistent, "economic terms consistent", "economic terms inconsistent"],
     [adjudication.administrativeAuthorityChanged, "administrative authority changed", "administrative authority unchanged"],
     [adjudication.implementationBehaviorConsistent, "implementation behavior consistent", "implementation behavior inconsistent"],
-    [adjudication.evidenceSufficient, "evidence sufficiency true", "evidence sufficiency false"],
+    [adjudication.evidenceSufficient, "evidence sufficient", "evidence insufficient"],
   ] as const;
-  return <div className="outcome-block"><div className={`fixture-verdict ${adjudication.verdict === "EXECUTION_PERMITTED" ? "permitted" : inconclusive ? "inconclusive" : "blocked"}`}>{adjudication.verdict}</div>{permit ? <p className="outcome-copy"><strong>Permit issued: <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link></strong> · recorded status {permit.status}.</p> : inconclusive ? <div className="outcome-copy"><strong>NO PERMIT.</strong> The semantic vector is INCONCLUSIVE, so Firewall fails closed and does not relabel it BLOCKED.<ul className="outcome-reasons">{failClosedReasons.map(([value, positive, negative]) => <li key={negative}>{value ? positive : negative}</li>)}</ul></div> : <p className="outcome-copy"><strong>NO PERMIT.</strong> The deterministic policy rejected the semantic vector.</p>}</div>;
+  return <div className="outcome-block"><div className={`fixture-verdict ${adjudication.verdict === "EXECUTION_PERMITTED" ? "permitted" : inconclusive ? "inconclusive" : "blocked"}`}>{adjudication.verdict}</div>{permit ? <p className="outcome-copy"><strong>Canonical permit: <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link></strong> / recorded status {permit.status}.</p> : inconclusive ? <div className="outcome-copy"><strong>NO PERMIT.</strong> The semantic vector is inconclusive, so policy fails closed.<ul className="outcome-reasons">{failClosedReasons.map(([value, positive, negative]) => <li key={negative}>{value ? positive : negative}</li>)}</ul></div> : <p className="outcome-copy"><strong>NO PERMIT.</strong> The deterministic policy rejected the semantic vector.</p>}</div>;
 }
 
 export function CanonicalForensicComparison({ model, executionId }: { readonly model: CanonicalLiveReadModel; readonly executionId?: string }) {
@@ -64,10 +60,10 @@ export function CanonicalForensicComparison({ model, executionId }: { readonly m
   if (!execution || !mandate) return <div className="empty"><strong>No canonical comparison available</strong>The contract returned no linked mandate and execution records.</div>;
   return <>
     <div className="forensic">
-      <section className="forensic-pane"><header>What governance approved</header><div className="panel-body"><Link className="detail-id" href={`/mandates/${mandate.mandateId}`}>{mandate.mandateId}</Link><h3>{mandate.proposalExternalId}</h3><p>{mandate.proposalText}</p><div className="detail-grid"><div><span className="field-label">State</span><span>{mandate.state}</span></div><div><span className="field-label">Governance source</span><span className="mono">{mandate.proposalSource}</span></div><div><span className="field-label">Governance contract</span><span className="mono">{mandate.governanceContract}</span></div></div></div></section>
-      <section className="forensic-pane"><header>What will actually execute</header><div className="panel-body"><Link className="detail-id" href={`/executions/${execution.executionId}`}>{execution.executionId}</Link><h3>Exact committed execution package</h3><p>{execution.semanticInput}</p><div className="detail-grid"><div><span className="field-label">Target chain (recorded)</span><span>{execution.chainId}</span></div><div><span className="field-label">State</span><span>{execution.state}</span></div><div><span className="field-label">Bundle hash</span><span className="mono">{execution.bundleHash}</span></div><div><span className="field-label">Code facts digest</span><span className="mono">{execution.codeFactsDigest}</span></div></div><p className="field-note">Target-chain context is part of the canonical execution record; this console reads the contract on Studio-dev chain {model.config.chainId}.</p></div></section>
+      <section className="forensic-pane"><header>Frozen mandate</header><div className="panel-body"><Link className="detail-id" href={`/mandates/${mandate.mandateId}`}>{mandate.mandateId}</Link><h3>{mandate.proposalExternalId}</h3><p>{mandate.proposalText}</p><div className="detail-grid"><div><span className="field-label">State</span><span>{mandate.state}</span></div><div><span className="field-label">Governance source</span><span className="mono">{mandate.proposalSource}</span></div><div><span className="field-label">Governance contract</span><span className="mono">{mandate.governanceContract}</span></div></div></div></section>
+      <section className="forensic-pane"><header>Caller-committed expected facts</header><div className="panel-body"><Link className="detail-id" href={`/executions/${execution.executionId}`}>{execution.executionId}</Link><div className="detail-grid"><div><span className="field-label">Target chain</span><span>{execution.chainId}</span></div><div><span className="field-label">State</span><span>{execution.state}</span></div><div><span className="field-label">Evidence state</span><span>{execution.evidenceStatus}</span></div><div><span className="field-label">Generation</span><span>{execution.generation}</span></div></div><pre className="mono evidence-json">{execution.expectedFacts}</pre><p className="field-note">The canonical reader is pinned to Studionet chain {model.config.chainId}. The execution record retains its EVM chain separately.</p></div></section>
     </div>
-    {adjudication ? <div className="canonical-adjudication"><div className="panel-header"><h2>Bounded semantic adjudication · <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link></h2><span className="mono">{model.semanticSchema}</span></div><SemanticMatrix adjudication={adjudication} /><CanonicalOutcome adjudication={adjudication} permit={permit} /></div> : <div className="callout">No canonical adjudication has been read for this execution. Permit authority remains absent.</div>}
+    {adjudication ? <div className="canonical-adjudication"><div className="panel-header"><h2>Adjudication / <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link></h2><span className="mono">{model.semanticSchema}</span></div><SemanticMatrix adjudication={adjudication} /><CanonicalOutcome adjudication={adjudication} permit={permit} /></div> : <div className="callout">No canonical adjudication has been read for this execution. Permit authority remains absent.</div>}
   </>;
 }
 
@@ -75,21 +71,21 @@ export function CanonicalQualificationPaths({ model }: { readonly model: Canonic
   return <div className="canonical-path-list">{model.executions.map((execution) => {
     const adjudication = model.adjudications.find((item) => item.executionId === execution.executionId);
     const permit = model.permits.find((item) => item.executionId === execution.executionId);
-    return <article className="canonical-path" key={execution.executionId}><div className="canonical-path-header"><div><span className="field-label">Live execution path</span><Link className="detail-id" href={`/executions/${execution.executionId}`}>{execution.executionId}</Link></div>{adjudication && <span className={`status ${adjudication.verdict === "EXECUTION_PERMITTED" ? "safe" : "inconclusive"}`}>{adjudication.verdict}</span>}</div><div className="canonical-path-meta">{adjudication && <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link>}{permit ? <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link> : <span>NO PERMIT</span>}</div>{adjudication && <><SemanticMatrix adjudication={adjudication} /><CanonicalOutcome adjudication={adjudication} permit={permit} /></>}</article>;
+    return <article className="canonical-path" key={execution.executionId}><div className="canonical-path-header"><div><span className="field-label">Execution</span><Link className="detail-id" href={`/executions/${execution.executionId}`}>{execution.executionId}</Link></div>{adjudication && <span className={`status ${adjudication.verdict === "EXECUTION_PERMITTED" ? "safe" : "inconclusive"}`}>{adjudication.verdict}</span>}</div><div className="canonical-path-meta">{adjudication && <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link>}{permit ? <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link> : <span>NO PERMIT</span>}</div>{adjudication && <><SemanticMatrix adjudication={adjudication} /><CanonicalOutcome adjudication={adjudication} permit={permit} /></>}</article>;
   })}</div>;
 }
 
 export function CanonicalActivity({ model }: { readonly model: CanonicalLiveReadModel }) {
-  return <div className="audit-list">{model.adjudications.map((adjudication) => { const permit = model.permits.find((item) => item.executionId === adjudication.executionId); return <div className="audit-row" key={adjudication.adjudicationId}><Link className="audit-id" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link><div className="audit-kind"><Link className="result-link" href={`/executions/${adjudication.executionId}`}>{adjudication.executionId}</Link> · {adjudication.verdict}{permit && <> · <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link></>}</div><div className="audit-time">GEN {adjudication.generation}</div></div>; })}</div>;
+  return <div className="audit-list">{model.adjudications.map((adjudication) => { const permit = model.permits.find((item) => item.executionId === adjudication.executionId); return <div className="audit-row" key={adjudication.adjudicationId}><Link className="audit-id" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link><div className="audit-kind"><Link className="result-link" href={`/executions/${adjudication.executionId}`}>{adjudication.executionId}</Link> / {adjudication.verdict}{permit && <> / <Link className="result-link" href={`/permits/${permit.permitId}`}>{permit.permitId}</Link></>}</div><div className="audit-time">GEN {adjudication.generation}</div></div>; })}</div>;
 }
 
 export function CanonicalEvidence({ model, executionId }: { readonly model: CanonicalLiveReadModel; readonly executionId?: string }) {
   const records = executionId ? model.evidence.filter((item) => item.executionId === executionId) : model.evidence;
-  if (records.length === 0) return <div className="empty"><strong>No canonical evidence record</strong>Evidence is never inferred from an execution or adjudication.</div>;
-  return <div className="detail-grid">{records.map((evidence) => <div className="evidence-card" key={evidence.evidenceHash}><span className="field-label">Evidence for {evidence.executionId}</span><span>{evidence.schemaVersion} · {evidence.exactByteLength} bytes · authenticated at {time(evidence.authenticatedAt)}</span><span className="mono">{evidence.evidenceHash}</span></div>)}</div>;
+  if (records.length === 0) return <div className="empty"><strong>No authenticated evidence is stored</strong>Evidence is read only from the canonical execution record.</div>;
+  return <div className="detail-grid">{records.map((evidence) => <div className="evidence-card" key={evidence.executionId}><span className="field-label">Evidence for {evidence.executionId}</span><span>{evidence.evidenceStatus}</span><code className="mono">{evidence.factsJson}</code></div>)}</div>;
 }
 
 export function CanonicalPermitRecord({ model, permit }: { readonly model: CanonicalLiveReadModel; readonly permit: CanonicalPermit }) {
   const adjudication = model.adjudications.find((item) => item.adjudicationId === permit.adjudicationId);
-  return <div className="panel-body"><div className="detail-grid"><div><span className="field-label">Permit</span><strong className="detail-id">{permit.permitId}</strong></div><div><span className="field-label">Canonical stored status</span><span>{permit.status}</span></div><div><span className="field-label">Current contract status</span><span>{model.permitStatuses[permit.permitId] ?? "NOT_READ"}</span></div><div><span className="field-label">Binding</span><span className="mono">{permit.permitBindingHash}</span></div><div><span className="field-label">Issued / expires</span><span>{time(permit.issuedAt)} · {time(permit.expiresAt)}</span></div><div><span className="field-label">Execution / adjudication</span><span><Link className="result-link" href={`/executions/${permit.executionId}`}>{permit.executionId}</Link> · {adjudication ? <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link> : permit.adjudicationId}</span></div></div><div className="callout" style={{ marginTop: 20 }}>The permit is a deterministic binding over the mandate, execution package, semantic schema, adjudication generation, and expiry. This page only reads its canonical record; it cannot issue or refresh a permit.</div></div>;
+  return <div className="panel-body"><div className="detail-grid"><div><span className="field-label">Permit</span><strong className="detail-id">{permit.permitId}</strong></div><div><span className="field-label">Canonical stored status</span><span>{permit.status}</span></div><div><span className="field-label">Current contract status</span><span>{model.permitStatuses[permit.permitId] ?? "NOT_READ"}</span></div><div><span className="field-label">Binding hash</span><span className="mono">{permit.bindingHash}</span></div><div><span className="field-label">Issued / expires</span><span>{time(permit.issuedAt)} / {time(permit.expiresAt)}</span></div><div><span className="field-label">Execution / adjudication</span><span><Link className="result-link" href={`/executions/${permit.executionId}`}>{permit.executionId}</Link> / {adjudication ? <Link className="result-link" href={`/adjudications/${adjudication.adjudicationId}`}>{adjudication.adjudicationId}</Link> : permit.adjudicationId}</span></div></div><div className="callout" style={{ marginTop: 20 }}>The permit binds the frozen mandate, expected execution facts, authenticated evidence, adjudication, and generation. Permit readback alone does not establish EVM enforcement; a configured Guard transaction is required.</div></div>;
 }

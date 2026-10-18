@@ -3,6 +3,10 @@ import { dirname } from "node:path";
 import type { Adjudication, EvidenceBundle, ExecutionPackage, Mandate, Permit } from "@firewall/domain";
 
 export * from "./canonical-reader";
+export * from "./prospective-reader";
+export * from "./network-config";
+export * from "./durable-transaction";
+export * from "./studionet-workflow";
 
 export type TransactionStage = "PREPARING" | "AWAITING_WALLET" | "BROADCAST" | "PENDING" | "ACCEPTED" | "FINALIZED" | "EXECUTION_FAILED" | "CANONICAL_SUCCESS";
 

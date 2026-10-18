@@ -10,8 +10,8 @@ const workflowPackage = readFileSync("packages/workflow/src/index.ts", "utf8");
 if (!canonical.includes("NODE_ENV !== \"production\"")) throw new Error("FIXTURE_GUARD_MISSING");
 if (!canonical.includes("FIREWALL_TEST_CANONICAL === \"1\"")) throw new Error("CONTROLLED_FIXTURE_GUARD_MISSING");
 if (landing.includes("canonicalTestFixture") || app.includes("canonicalTestFixture")) throw new Error("CANONICAL_PAGE_IMPORTS_FIXTURE");
-if (!readModelRoute.includes('scope: "CANONICAL_LIVE_READ"') || !readModelRoute.includes("canonical: true")) throw new Error("LIVE_ROUTE_PROVENANCE_MISSING");
+if (!readModelRoute.includes('"LIVE_CANONICAL"') || !readModelRoute.includes('"TEST_FIXTURE_NOT_LIVE"')) throw new Error("READ_ROUTE_PROVENANCE_MISSING");
 if (!workflow.includes("LOCAL_WORKFLOW_SCOPE") || !workflowPackage.includes('LOCAL_WORKFLOW_SCOPE = "LOCAL_PRECHAIN_ANALYSIS"')) throw new Error("LOCAL_SCOPE_LABEL_MISSING");
 if (!workflow.includes("writeAuthority: \"NONE\"")) throw new Error("LOCAL_WRITE_AUTHORITY_MISSING");
 
-console.log(JSON.stringify({ ok: true, productionCanonical: true, fixtureFallback: false, localWorkflowScope: "LOCAL_PRECHAIN_ANALYSIS" }));
+console.log(JSON.stringify({ ok: true, v2ReadPath: true, fixtureFallback: false, localWorkflowScope: "LOCAL_PRECHAIN_ANALYSIS", productionDeploymentVerified: false }));

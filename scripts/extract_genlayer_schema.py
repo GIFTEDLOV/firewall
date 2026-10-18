@@ -18,7 +18,7 @@ def inject_message(vm, loader) -> None:
     try:
         calldata = loader.import_calldata()
         address = loader.import_address()
-    except AttributeError:
+    except (AttributeError, ImportError, ModuleNotFoundError):
         from genlayer.py import calldata
         from genlayer.py.types import Address as address
     to_address = lambda value: value if not isinstance(value, bytes) else address(value)

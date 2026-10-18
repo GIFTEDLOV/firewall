@@ -1,12 +1,11 @@
 {
   "purpose": "FIREWALL_V2_INDEPENDENT_EVIDENCE_QUALIFICATION",
-  "status": "CANDIDATE_NOT_DEPLOYED",
+  "status": "CONTRACT_DEPLOYED_QUALIFICATION_PENDING",
   "contract": {
     "source": "contracts/firewall_v2_candidate.py",
-    "source_sha256": "8647f319dfc90060581937a8f6249561298cd662155992f1d92aaba0e88c1a60",
-    "abi": "artifacts/firewall_v2_candidate.abi.json",
+    "source_sha256": "b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163",
+    "abi": null,
     "schema": "artifacts/firewall_v2_candidate.schema.json",
-    "abi_sha256": "b313e74d96845f21eae755cdf60329f8c8306ff57f461a9459b42f70f2ae0eca",
     "schema_sha256": "b313e74d96845f21eae755cdf60329f8c8306ff57f461a9459b42f70f2ae0eca",
     "evidence_schema": "FIREWALL_EVM_EVIDENCE_V3",
     "semantic_schema": "FIREWALL_MANDATE_V2",
@@ -48,19 +47,23 @@
     "not_two_urls_under_one_rpc_operator": true
   },
   "proofs": {
-    "live_positive_probe": "scripts/verify_v2_historical_evidence.py fetched Blockscout and Routescan native schemas and produced identical canonical facts",
+    "provider_preflight": "scripts/verify_v2_historical_evidence.py fetched Blockscout and Routescan native schemas and produced identical canonical facts; this is local provider verification only",
     "tampered_expected_calldata": "0xdeadbeef",
     "tampered_result": "REJECTED_BY_AUTHENTICATED_SOURCE_BOUNDARY",
     "current_recheck": "Blockscout and Routescan returned HTTP 200; native transaction, receipt, block, logs, and internal-operation facts matched",
-    "validator_path": "authenticate_evidence uses strict_eq; leader and validator independently fetch every configured GET document, then _authenticated_source compares normalized native facts",
+    "validator_path": "Source implements strict_eq and independent nondeterministic provider retrieval; LIVE leader and validator retrieval has NOT been observed",
     "enforcement_proof": "scripts/test_safe_guard.mjs passed on local Ganache chain 31337; this is not a public EVM deployment"
   },
   "deployment": {
     "genlayer_target": "Studionet",
     "chain_id": 61999,
-    "v2_deployed": false,
+    "v2_deployed": true,
+    "contract_address": "0x7Ab4Dc9B84f3fDEB90e9795976065F42Ea0b9528",
+    "deployment_transaction": "0xa3f25170cfa592fa5d289c8c9a9f9662b58815150c02190478f39ed5cb084c20",
+    "source_sha256": "b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163",
     "public_evm_guard_deployed": false,
-    "public_writes": 0,
+    "qualification_writes": 0,
+    "qualification_transactions": [],
     "gen_spent": "0"
   }
 }

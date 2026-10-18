@@ -1,9 +1,10 @@
-"""Live qualification proof for the V2 evidence boundary.
+"""Local provider normalization check for the V2 evidence boundary.
 
-This is intentionally a read-only test against the supplied historical mainnet
-transaction. It loads the candidate contract's normalization code with a tiny
-GenLayer runtime shim, then exercises the same native-provider parsing path
-used by leader and validator retrieval. It does not submit a transaction.
+This read-only check fetches a historical Ethereum transaction from two public
+providers and exercises the candidate contract's normalization code with a
+local GenLayer runtime shim. It proves only that the local normalizers agree on
+these provider responses. It does not run inside GenLayer, demonstrate leader
+or validator retrieval, establish live consensus, or submit a transaction.
 """
 
 from __future__ import annotations
@@ -50,7 +51,7 @@ class _Web:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": "Firewall-V2-live-evidence-proof/1.0",
+                "User-Agent": "Firewall-V2-local-evidence-check/1.0",
             },
         )
         with urllib.request.urlopen(request, timeout=30) as response:
@@ -59,7 +60,7 @@ class _Web:
             return _Response(response.read())
 
 
-def _load_candidate():
+def _load_candidate(contract_path: Path | None = None):
     genlayer = types.ModuleType("genlayer")
     gl = types.SimpleNamespace(
         Contract=_Contract,
@@ -101,7 +102,7 @@ def _load_candidate():
             "genlayer.types.keccak": genlayer.types.keccak,
         }
     )
-    path = Path(__file__).resolve().parents[1] / "contracts" / "firewall_v2_candidate.py"
+    path = contract_path or Path(__file__).resolve().parents[1] / "contracts" / "firewall_v2_candidate.py"
     spec = importlib.util.spec_from_file_location("firewall_v2_candidate", path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -120,7 +121,8 @@ def _fetch_documents(config: dict) -> dict:
 
 
 def main() -> None:
-    module = _load_candidate()
+    contract_path = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else None
+    module = _load_candidate(contract_path)
     candidate = module.FirewallV2.__new__(module.FirewallV2)
     blockscout = {
         "kind": "BLOCKSCOUT_V2",
@@ -129,6 +131,7 @@ def main() -> None:
         "block": f"https://eth.blockscout.com/api/v2/blocks/{BLOCK}",
         "logs": f"https://eth.blockscout.com/api/v2/transactions/{TX}/logs",
         "implementation": f"https://eth.blockscout.com/api/v2/smart-contracts/{BLOCKSCOUT_IMPLEMENTATION}",
+        "implementation_address": BLOCKSCOUT_IMPLEMENTATION,
     }
     routescan = {
         "kind": "ROUTESCAN_ETHEREUM",
@@ -174,6 +177,30 @@ def main() -> None:
     )
     assert candidate._authenticated_source(execution, documents) == first
 
+    # Persist the observed provider-normalized facts for transparent assembly
+    # of the GenLayer commit_execution input. This artifact is deliberately
+    # labeled local-only: validators must independently fetch the stored
+    # provider URLs inside authenticate_evidence before it becomes evidence.
+    artifact_path = Path(__file__).resolve().parents[1] / "evidence" / "qualification" / "current" / "historical_facts_local_preflight.json"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text(
+        json.dumps(
+            {
+                "status": "LOCAL_NORMALIZATION_ONLY_NOT_VALIDATOR_AUTHENTICATION",
+                "providers": {
+                    "blockscout": json.loads(source_a),
+                    "routescan": json.loads(source_b),
+                },
+                "facts": first,
+                "mandate_id": "SET_TO_CANONICAL_CREATE_MANDATE_RETURN_VALUE",
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     original_routescan_normalizer = candidate._normalize_routescan
     candidate._normalize_routescan = lambda config, chain, source_documents: {
         **original_routescan_normalizer(config, chain, source_documents),
@@ -203,8 +230,10 @@ def main() -> None:
             {
                 "provider_1": source_a,
                 "provider_2": source_b,
+                "local_facts_artifact": str(artifact_path),
                 "independent_facts_match": True,
-                "validator_side_retrieval": "same normalizers and same native GET documents",
+                "validator_side_retrieval": "NOT_PERFORMED_LOCAL_FETCH_ONLY",
+                "live_genlayer_consensus": "NOT_PERFORMED",
                 "provider_disagreement_rejected": True,
                 "tampered_expected_facts_rejected": True,
                 "chain_id": first["chain_id"],

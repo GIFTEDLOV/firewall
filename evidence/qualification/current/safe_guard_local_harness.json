@@ -1,0 +1,31 @@
+{
+  "evidenceScope": "LOCAL_GANACHE_ONLY_NOT_PUBLIC_LIVE_ENFORCEMENT",
+  "checkedAt": "2026-10-18T22:54:47.087Z",
+  "status": "PASS",
+  "validExecution": true,
+  "nonceHookOrder": "Safe pre-increments nonce before checkTransaction; the Guard maps current nonce minus one to signed pre-execution nonce",
+  "guardOwnerTransferredToSafe": true,
+  "authorizedGuardRemoval": true,
+  "blocked": [
+    "direct EOA guard administration after ownership transfer",
+    "different calldata",
+    "different target",
+    "wrong Safe nonce",
+    "replay",
+    "duplicate intent registration",
+    "unauthorized guard removal",
+    "module bypass",
+    "code hash mismatch",
+    "native value mismatch",
+    "proxy identity",
+    "expired authorization",
+    "expired execution deadline",
+    "incorrect attestation signer",
+    "incorrect chain binding",
+    "incorrect Safe binding"
+  ],
+  "chainId": 31337,
+  "safe": "0x1b916824f9ab7eb92edeb8bb408064aa58c9ef9e",
+  "guard": "0xac10b5a744cb1c8c1402fe18e66320cff0d1ef30",
+  "receiver": "0x8b1baf5996a5a5233188fd831b72e4de3e63d779"
+}

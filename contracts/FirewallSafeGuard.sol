@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-interface IFirewallGuard {
+interface ISafeTransactionGuard {
     function checkTransaction(address to, uint256 value, bytes calldata data, uint8 operation, uint256 safeTxGas, uint256 baseGas, uint256 gasPrice, address gasToken, address payable refundReceiver, bytes calldata signatures, address msgSender) external;
     function checkAfterExecution(bytes32 txHash, bool success) external;
-    function checkModuleTransaction(address to, uint256 value, bytes calldata data, uint8 operation, address module) external;
 }
 
 interface ISafeNonce { function nonce() external view returns (uint256); }
@@ -18,12 +17,14 @@ interface ISafeNonce { function nonce() external view returns (uint256); }
  * is keyed by the Safe's current nonce and the exact target/value/calldata/
  * operation tuple, and is consumed before the call is made.
  */
-contract FirewallSafeGuard is IFirewallGuard {
+contract FirewallSafeGuard is ISafeTransactionGuard {
+    bytes4 private constant ERC165_INTERFACE_ID = 0x01ffc9a7;
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
-    bytes32 public constant AUTH_TYPEHASH = keccak256("PermitAuthorization(bytes32 permitId,bytes32 mandateId,bytes32 executionId,bytes32 proposalHash,bytes32 executionBundleHash,uint256 targetChainId,address safe,address to,uint256 value,bytes32 dataHash,uint8 operation,uint256 safeNonce,bytes32 targetsDigest,bytes32 valuesDigest,bytes32 calldataDigest,bytes32 codeFactsDigest,bytes32 implementationFactsDigest,bytes32 targetCodeHash,address implementationAddress,bytes32 implementationCodeHash,bytes32 batchStructureHash,bytes32 adjudicationId,uint256 adjudicationGeneration,uint256 expiresAt,bytes32 canonicalPermitHash)");
+    bytes32 public constant AUTH_TYPEHASH = keccak256("PermitAuthorization(bytes32 permitId,bytes32 intentId,bytes32 mandateId,bytes32 executionId,bytes32 proposalHash,bytes32 executionBundleHash,uint256 targetChainId,address safe,address to,uint256 value,bytes32 dataHash,uint8 operation,uint256 safeNonce,bytes32 targetsDigest,bytes32 valuesDigest,bytes32 calldataDigest,bytes32 codeFactsDigest,bytes32 implementationFactsDigest,bytes32 targetCodeHash,address implementationAddress,bytes32 implementationCodeHash,bytes32 batchStructureHash,bytes32 adjudicationId,uint256 adjudicationGeneration,uint256 executionDeadline,uint256 expiresAt,bytes32 canonicalPermitHash)");
 
     struct Authorization {
         bytes32 permitId;
+        bytes32 intentId;
         bytes32 mandateId;
         bytes32 executionId;
         bytes32 proposalHash;
@@ -46,6 +47,7 @@ contract FirewallSafeGuard is IFirewallGuard {
         bytes32 batchStructureHash;
         bytes32 adjudicationId;
         uint256 adjudicationGeneration;
+        uint256 executionDeadline;
         uint256 expiresAt;
         bytes32 canonicalPermitHash;
     }
@@ -55,6 +57,7 @@ contract FirewallSafeGuard is IFirewallGuard {
     mapping(address => bool) public authorizedRelayer;
     mapping(bytes32 => Authorization) public authorizations;
     mapping(bytes32 => bool) public permitRegistered;
+    mapping(bytes32 => bool) public intentRegistered;
     mapping(bytes32 => bool) public consumed;
     mapping(bytes32 => bool) public revoked;
 
@@ -72,7 +75,7 @@ contract FirewallSafeGuard is IFirewallGuard {
     error ProtectedExecutionFailed();
     error OnlyOwner();
 
-    event AuthorizationRegistered(bytes32 indexed permitId, bytes32 indexed executionBundleHash, uint256 safeNonce, uint256 expiresAt, address indexed signer);
+    event AuthorizationRegistered(bytes32 indexed permitId, bytes32 indexed intentId, bytes32 indexed executionBundleHash, uint256 safeNonce, uint256 executionDeadline, uint256 expiresAt, address signer);
     event AuthorizationConsumedEvent(bytes32 indexed permitId, bytes32 indexed executionBundleHash, bytes32 indexed txHash);
     event RelayerUpdated(address indexed relayer, bool allowed);
     event PermitRevoked(bytes32 indexed permitId);
@@ -104,8 +107,8 @@ contract FirewallSafeGuard is IFirewallGuard {
     }
 
     function registerAuthorization(Authorization calldata authorization, bytes calldata signature) external {
-        if (authorization.safe != safe || authorization.targetChainId != block.chainid || authorization.permitId == bytes32(0) || authorization.canonicalPermitHash == bytes32(0) || permitRegistered[authorization.permitId]) revert AuthorizationMismatch();
-        if (authorization.expiresAt <= block.timestamp) revert AuthorizationExpired();
+        if (authorization.safe != safe || authorization.targetChainId != block.chainid || authorization.permitId == bytes32(0) || authorization.intentId == bytes32(0) || authorization.canonicalPermitHash == bytes32(0) || permitRegistered[authorization.permitId] || intentRegistered[authorization.intentId]) revert AuthorizationMismatch();
+        if (authorization.executionDeadline <= block.timestamp || authorization.expiresAt <= block.timestamp || authorization.executionDeadline > authorization.expiresAt) revert AuthorizationExpired();
         // This generic guard has no safe, in-contract EIP-1967 reader. A proxy
         // authorization must therefore be rejected before it can be relayed;
         // a future target-specific verifier may provide a separate integration.
@@ -116,7 +119,12 @@ contract FirewallSafeGuard is IFirewallGuard {
         if (authorizations[key].permitId != bytes32(0)) revert AuthorizationMismatch();
         authorizations[key] = authorization;
         permitRegistered[authorization.permitId] = true;
-        emit AuthorizationRegistered(authorization.permitId, authorization.executionBundleHash, authorization.safeNonce, authorization.expiresAt, signer);
+        intentRegistered[authorization.intentId] = true;
+        emit AuthorizationRegistered(authorization.permitId, authorization.intentId, authorization.executionBundleHash, authorization.safeNonce, authorization.executionDeadline, authorization.expiresAt, signer);
+    }
+
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == type(ISafeTransactionGuard).interfaceId || interfaceId == ERC165_INTERFACE_ID;
     }
 
     function checkTransaction(address to, uint256 value, bytes calldata data, uint8 operation, uint256, uint256, uint256, address, address payable, bytes calldata, address) external override {
@@ -124,29 +132,37 @@ contract FirewallSafeGuard is IFirewallGuard {
         _check(to, value, data, operation);
     }
 
-    function checkModuleTransaction(address, uint256, bytes calldata, uint8, address) external view override {
+    function checkModuleTransaction(address, uint256, bytes calldata, uint8, address) external view {
         // Safe versions that expose the module hook are fail-closed. Older
         // Safe versions do not call this hook; their module execution must be
         // disabled or a separate module guard must be installed.
         revert ModuleExecutionBlocked();
     }
 
-    function checkAfterExecution(bytes32 txHash, bool success) external override {
+    function checkAfterExecution(bytes32, bool success) external override {
         if (msg.sender != safe) revert CallerNotSafe();
         if (!success) revert ProtectedExecutionFailed();
-        emit AuthorizationConsumedEvent(bytes32(0), bytes32(0), txHash);
     }
 
     function _check(address to, uint256 value, bytes calldata data, uint8 operation) internal {
         if (operation != 0) revert DelegateCallNotAllowed();
-        if (to == safe && _isGuardConfigurationCall(data)) revert GuardConfigurationChange();
-        uint256 safeNonce = ISafeNonce(safe).nonce();
+        // Configuration changes stay fail-closed. The only exception is an
+        // exact Safe self-call that removes this Guard; it still has to match
+        // a fresh, signed authorization below. This keeps the Safe recoverable
+        // without creating an owner-only bypass around canonical permits.
+        if (to == safe && _isGuardConfigurationCall(data) && !_isAuthorizedGuardRemoval(data)) revert GuardConfigurationChange();
+        // Safe's execTransaction performs `nonce++` before invoking the guard.
+        // Bind to the nonce signed and supplied by the relay, which is the
+        // current stored nonce minus the just-consumed transaction nonce.
+        uint256 currentSafeNonce = ISafeNonce(safe).nonce();
+        if (currentSafeNonce == 0) revert AuthorizationMismatch();
+        uint256 safeNonce = currentSafeNonce - 1;
         bytes32 dataHash = keccak256(data);
         bytes32 key = _executionKey(block.chainid, safe, to, value, dataHash, operation, safeNonce);
         Authorization memory authorization = authorizations[key];
         if (authorization.permitId == bytes32(0)) revert AuthorizationMissing();
         if (revoked[authorization.permitId] || consumed[authorization.permitId]) revert AuthorizationAlreadyConsumed();
-        if (authorization.expiresAt <= block.timestamp) revert AuthorizationExpired();
+        if (authorization.executionDeadline < block.timestamp || authorization.expiresAt <= block.timestamp) revert AuthorizationExpired();
         if (authorization.targetChainId != block.chainid || authorization.safe != safe || authorization.to != to || authorization.value != value || authorization.dataHash != dataHash || authorization.operation != operation || authorization.safeNonce != safeNonce) revert AuthorizationMismatch();
         if (authorization.targetCodeHash != bytes32(0) && authorization.targetCodeHash != _codeHash(to)) revert CodeIdentityMismatch();
         // A generic guard cannot read another contract's EIP-1967 storage
@@ -166,6 +182,14 @@ contract FirewallSafeGuard is IFirewallGuard {
         return selector == bytes4(keccak256("setGuard(address)")) || selector == bytes4(keccak256("enableModule(address)")) || selector == bytes4(keccak256("disableModule(address)")) || selector == bytes4(keccak256("execTransactionFromModule(address,uint256,bytes,uint8)"));
     }
 
+    function _isAuthorizedGuardRemoval(bytes calldata data) internal pure returns (bool) {
+        if (data.length != 36) return false;
+        bytes4 selector;
+        assembly { selector := calldataload(data.offset) }
+        if (selector != bytes4(keccak256("setGuard(address)"))) return false;
+        return abi.decode(data[4:], (address)) == address(0);
+    }
+
     function _executionKey(uint256 chainId, address safe_, address to, uint256 value, bytes32 dataHash, uint8 operation, uint256 safeNonce) internal pure returns (bytes32) {
         return keccak256(abi.encode(chainId, safe_, to, value, dataHash, operation, safeNonce));
     }
@@ -175,7 +199,7 @@ contract FirewallSafeGuard is IFirewallGuard {
     }
 
     function _structHash(Authorization calldata a) internal pure returns (bytes32) {
-        return keccak256(abi.encode(AUTH_TYPEHASH, a.permitId, a.mandateId, a.executionId, a.proposalHash, a.executionBundleHash, a.targetChainId, a.safe, a.to, a.value, a.dataHash, a.operation, a.safeNonce, a.targetsDigest, a.valuesDigest, a.calldataDigest, a.codeFactsDigest, a.implementationFactsDigest, a.targetCodeHash, a.implementationAddress, a.implementationCodeHash, a.batchStructureHash, a.adjudicationId, a.adjudicationGeneration, a.expiresAt, a.canonicalPermitHash));
+        return keccak256(abi.encode(AUTH_TYPEHASH, a.permitId, a.intentId, a.mandateId, a.executionId, a.proposalHash, a.executionBundleHash, a.targetChainId, a.safe, a.to, a.value, a.dataHash, a.operation, a.safeNonce, a.targetsDigest, a.valuesDigest, a.calldataDigest, a.codeFactsDigest, a.implementationFactsDigest, a.targetCodeHash, a.implementationAddress, a.implementationCodeHash, a.batchStructureHash, a.adjudicationId, a.adjudicationGeneration, a.executionDeadline, a.expiresAt, a.canonicalPermitHash));
     }
 
     function _digest(Authorization calldata a) internal view returns (bytes32) { return keccak256(abi.encodePacked("\x19\x01", _domainSeparator(), _structHash(a))); }
