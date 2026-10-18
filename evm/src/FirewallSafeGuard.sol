@@ -119,10 +119,7 @@ contract FirewallSafeGuard is IFirewallTransactionGuard {
 
         // The full original permit is verified at publication, including
         // transaction inputs. Call binding is stored separately at publish.
-        bytes32 callBinding = keccak256(abi.encode(
-            block.chainid, safe, consumedNonce, to, value, keccak256(data), uint8(operation)
-        ));
-        if (saved.typedDigest == bytes32(0) || callBinding != _callBinding[consumedNonce]) revert UnauthorizedExecution();
+        if (saved.typedDigest == bytes32(0) || !_matchesAuthorizedCall(consumedNonce, to, value, data, operation)) revert UnauthorizedExecution();
         if (usedIntentIds[saved.intentId] || pending) revert UnauthorizedExecution();
 
         pending = true;
@@ -133,6 +130,16 @@ contract FirewallSafeGuard is IFirewallTransactionGuard {
     }
 
     mapping(uint256 => bytes32) private _callBinding;
+
+    function _matchesAuthorizedCall(
+        uint256 n, address to, uint256 value, bytes memory data, Operation operation
+    ) internal view returns (bool) {
+        return keccak256(abi.encode(
+            block.chainid, safe, n, to, value, keccak256(data), uint8(operation)
+        )) == _callBinding[n];
+    }
+
+
 
     function publishBoundPermit(ProspectivePermit calldata p, bytes calldata signature) external {
         // This is the deployment-qualified publication route; avoid an
