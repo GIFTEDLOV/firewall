@@ -52,6 +52,63 @@ function jsonSafe(value: unknown): unknown {
   return value;
 }
 
+async function readFinalizedEvmState(input: {
+  readonly safe: Address;
+  readonly guard: Address;
+  readonly relaySigner: Address;
+  readonly permitId: string;
+  readonly intentId: Hex;
+  readonly target: Address;
+}) {
+  if (process.env.FIREWALL_EVM_CHAIN_ID !== String(CHAIN_ID) || process.env.FIREWALL_EVM_RPC_URL !== RPC_A || process.env.FIREWALL_EVM_SECONDARY_RPC_URL !== RPC_B) throw new Error("PROSPECTIVE_EVM_NETWORK_CONFIGURATION_MISMATCH");
+  const chain = defineChain({ id: CHAIN_ID, name: "Ethereum Sepolia", nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 }, rpcUrls: { default: { http: [RPC_A, RPC_B] } }, blockExplorers: { default: { name: "Etherscan", url: "https://sepolia.etherscan.io" } } });
+  const clients = [
+    createPublicClient({ chain, transport: http(RPC_A, { timeout: 12_000 }) }),
+    createPublicClient({ chain, transport: http(RPC_B, { timeout: 12_000 }) }),
+  ] as const;
+  const chainIds = await Promise.all(clients.map((client) => client.getChainId()));
+  if (chainIds.some((id) => id !== CHAIN_ID)) throw new Error("PROSPECTIVE_EVM_CHAIN_MISMATCH");
+  const finalizedHeads = await Promise.all(clients.map((client) => client.getBlock({ blockTag: "finalized" })));
+  const commonNumber = finalizedHeads[0]!.number < finalizedHeads[1]!.number ? finalizedHeads[0]!.number : finalizedHeads[1]!.number;
+  const blocks = await Promise.all(clients.map((client) => client.getBlock({ blockNumber: commonNumber })));
+  if (!blocks[0]!.hash || blocks[0]!.hash !== blocks[1]!.hash || blocks[0]!.timestamp !== blocks[1]!.timestamp) throw new Error("PROSPECTIVE_EVM_FINALIZED_BLOCK_DISAGREEMENT");
+  const permitKey = keccak256(new TextEncoder().encode(input.permitId));
+  const read = async (client: typeof clients[number]) => {
+    const blockNumber = commonNumber;
+    const [nonce, owners, threshold, implementation, modules, installedWord, safeCode, guardCode, singletonCode, targetCode, guardOwner, guardSafe, relayAllowed, permitRegistered, intentRegistered, revoked, consumed] = await Promise.all([
+      client.readContract({ address: input.safe, abi: safeAbi, functionName: "nonce", blockNumber }),
+      client.readContract({ address: input.safe, abi: safeAbi, functionName: "getOwners", blockNumber }),
+      client.readContract({ address: input.safe, abi: safeAbi, functionName: "getThreshold", blockNumber }),
+      client.readContract({ address: input.safe, abi: safeAbi, functionName: "masterCopy", blockNumber }),
+      client.readContract({ address: input.safe, abi: safeAbi, functionName: "getModulesPaginated", args: [SENTINEL, 10n], blockNumber }),
+      client.getStorageAt({ address: input.safe, slot: `0x${GUARD_SLOT.toString(16).padStart(64, "0")}`, blockNumber }),
+      client.getCode({ address: input.safe, blockNumber }),
+      client.getCode({ address: input.guard, blockNumber }),
+      client.getCode({ address: SAFE_SINGLETON, blockNumber }),
+      client.getCode({ address: input.target, blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "owner", blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "safe", blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "authorizedRelayer", args: [input.relaySigner], blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "permitRegistered", args: [permitKey], blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "intentRegistered", args: [input.intentId], blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "revoked", args: [permitKey], blockNumber }),
+      client.readContract({ address: input.guard, abi: guardAbi, functionName: "consumed", args: [permitKey], blockNumber }),
+    ]);
+    if (!installedWord || installedWord.length < 42) throw new Error("SAFE_GUARD_STORAGE_INVALID");
+    return {
+      nonce: nonce.toString(), owners: owners.map((owner) => owner.toLowerCase()), threshold: threshold.toString(),
+      implementation: implementation.toLowerCase(), modules: { values: modules[0].map((module) => module.toLowerCase()), next: modules[1].toLowerCase() },
+      installedGuard: `0x${installedWord.slice(-40)}`.toLowerCase(), safeCodePresent: Boolean(safeCode && safeCode !== "0x"),
+      guardCodeHash: keccak256(guardCode ?? "0x").toLowerCase(), singletonCodeHash: keccak256(singletonCode ?? "0x").toLowerCase(),
+      targetCodeHash: keccak256(targetCode ?? "0x").toLowerCase(), guardOwner: guardOwner.toLowerCase(), guardSafe: guardSafe.toLowerCase(),
+      relayAllowed, permitRegistered, intentRegistered, revoked, consumed,
+    };
+  };
+  const states = await Promise.all(clients.map(read));
+  if (!equal(states[0], states[1])) throw new Error("PROSPECTIVE_EVM_FINALIZED_STATE_DISAGREEMENT");
+  return { blockNumber: commonNumber.toString(), blockHash: blocks[0]!.hash, timestamp: blocks[0]!.timestamp.toString(), state: states[0]! };
+}
+
 export async function GET() {
   // Status is a read-only operation and must remain available without loading
   // the relay signing secret. Only POST may require the private key.
@@ -99,23 +156,61 @@ export async function GET() {
       && permit.expiresAt > now && permit.executionDeadline > now && intent?.chainId === CHAIN_ID && intent.operation === 0
       && intent.safe.toLowerCase() === safe && intent.guard.toLowerCase() === guard;
   });
-  if (!candidate) return ok({ scope: "PROSPECTIVE_SAFE_ENFORCEMENT", state: "NO_CANONICAL_PROSPECTIVE_PERMIT", configured: true, chainId: CHAIN_ID, safe, guard, canonicalPermitCount: canonical.model.permits.length, canonicalRecords, signatureAvailable: false, prospectiveExecutionSupported: false, reason: "No active canonical Studionet V3 permit is bound to this Ethereum Sepolia Safe and Guard." });
-  const intent = canonical.model.intents.find((item) => item.intentId.toLowerCase() === candidate.intentId.toLowerCase())!;
+  const observedPermit = candidate ?? latestPermit;
+  const intent = observedPermit ? canonical.model.intents.find((item) => item.intentId.toLowerCase() === observedPermit.intentId.toLowerCase()) : null;
+  if (!observedPermit || !intent || intent.chainId !== CHAIN_ID || intent.safe.toLowerCase() !== safe || intent.guard.toLowerCase() !== guard) return ok({ scope: "PROSPECTIVE_SAFE_ENFORCEMENT", state: "NO_CANONICAL_PROSPECTIVE_PERMIT", configured: true, chainId: CHAIN_ID, safe, guard, canonicalPermitCount: canonical.model.permits.length, canonicalRecords, signatureAvailable: false, prospectiveExecutionSupported: false, enforcementVerified: false, reason: "No canonical Studionet V3 permit is bound to this Ethereum Sepolia Safe and Guard." });
+  let evm: Awaited<ReturnType<typeof readFinalizedEvmState>>;
+  try {
+    evm = await readFinalizedEvmState({ safe: safe as Address, guard: guard as Address, relaySigner: address(process.env.FIREWALL_RELAY_SIGNER_ADDRESS, "FIREWALL_RELAY_SIGNER_ADDRESS"), permitId: observedPermit.permitId, intentId: intent.intentId, target: intent.target });
+  } catch (error) {
+    return ok({ scope: "PROSPECTIVE_SAFE_ENFORCEMENT", state: "LIVE_EVM_READ_UNAVAILABLE", configured: true, chainId: CHAIN_ID, safe, guard, canonicalRecords, signatureAvailable: false, prospectiveExecutionSupported: false, enforcementVerified: false, reason: error instanceof Error ? error.message : "LIVE_EVM_FINALIZED_READ_FAILED" }, 503);
+  }
+  const actual = evm.state;
+  const expectedOwners = (process.env.FIREWALL_EXPECTED_SAFE_OWNERS ?? "").split(",").map((value) => value.trim().toLowerCase()).filter(Boolean);
+  const expectedThreshold = process.env.FIREWALL_EXPECTED_SAFE_THRESHOLD;
+  const expectedGuardCodeHash = process.env.FIREWALL_GUARD_RUNTIME_CODE_HASH?.toLowerCase();
+  const guardInstalledOnSafe = actual.installedGuard === guard;
+  const modulePathDisabled = actual.modules.values.length === 0 && actual.modules.next === SENTINEL;
+  const ownershipVerified = expectedOwners.length > 0 && equal(actual.owners, expectedOwners) && actual.threshold === expectedThreshold;
+  const safeGuardConfigurationVerified = ownershipVerified && actual.implementation === SAFE_SINGLETON && actual.singletonCodeHash === SAFE_SINGLETON_CODE_HASH && actual.safeCodePresent && guardInstalledOnSafe && actual.guardOwner === safe && actual.guardSafe === safe && modulePathDisabled && actual.guardCodeHash === expectedGuardCodeHash && actual.targetCodeHash === intent.targetCodeHash.toLowerCase() && actual.relayAllowed && isDistinctSafeRelaySigner(process.env.FIREWALL_RELAY_SIGNER_ADDRESS as Address, actual.owners as Address[]);
+  const permitConsumedBySuccessfulExecution = safeGuardConfigurationVerified && actual.permitRegistered && actual.intentRegistered && !actual.revoked && actual.consumed && BigInt(actual.nonce) === BigInt(intent.safeNonce) + 1n;
+  const permitReadyForExecution = safeGuardConfigurationVerified && candidate !== undefined && actual.permitRegistered && actual.intentRegistered && !actual.revoked && !actual.consumed && BigInt(actual.nonce) === BigInt(intent.safeNonce) && observedPermit.executionDeadline > BigInt(evm.timestamp) && observedPermit.expiresAt > BigInt(evm.timestamp);
+  const state = !safeGuardConfigurationVerified ? "LIVE_SAFE_GUARD_CONFIGURATION_MISMATCH" : permitConsumedBySuccessfulExecution ? "AUTHORIZED_SAFE_EXECUTION_VERIFIED_FINALIZED" : actual.permitRegistered ? "CANONICAL_AUTHORIZATION_REGISTERED_AWAITING_EXECUTION" : candidate ? "CANONICAL_PERMIT_PENDING_GUARD_REGISTRATION" : "CANONICAL_PERMIT_NO_LONGER_EXECUTABLE";
   return ok({
     scope: "PROSPECTIVE_SAFE_ENFORCEMENT",
-    state: "CANONICAL_PERMIT_CANDIDATE_REQUIRES_LIVE_SAFE_CHECK",
+    state,
     configured: true,
     signatureAvailable: Boolean(process.env.FIREWALL_RELAY_PRIVATE_KEY),
-    prospectiveExecutionSupported: false,
+    prospectiveExecutionSupported: permitReadyForExecution,
+    enforcementVerified: permitConsumedBySuccessfulExecution,
     chainId: CHAIN_ID,
     safe,
     guard,
     canonicalPermitCount: canonical.model.permits.length,
     canonicalRecords,
-    prospectiveCall: { permitId: candidate.permitId, to: intent.target, value: intent.value, data: intent.calldata, operation: intent.operation },
-    reason: process.env.FIREWALL_RELAY_PRIVATE_KEY
-      ? "The canonical permit is active; the relay still must verify finalized Safe, Guard, nonce, module, code identity, and attestor conditions before signing."
-      : "The canonical permit is active and readable; no relay signature can be issued until the server-only signing key is configured.",
+    finalizedEvmRead: { blockNumber: evm.blockNumber, blockHash: evm.blockHash, timestamp: evm.timestamp },
+    safeNonce: actual.nonce,
+    safeOwners: actual.owners,
+    safeThreshold: actual.threshold,
+    safeOwnershipVerified: ownershipVerified,
+    guardInstalledOnSafe,
+    guardAdminTransferredToSafe: actual.guardOwner === safe,
+    guardOwner: actual.guardOwner,
+    modulePathDisabled,
+    relayAuthorized: actual.relayAllowed,
+    relaySigner: process.env.FIREWALL_RELAY_SIGNER_ADDRESS,
+    relaySignerIsSafeOwner: actual.owners.includes(process.env.FIREWALL_RELAY_SIGNER_ADDRESS!.toLowerCase()),
+    permitRegistered: actual.permitRegistered,
+    intentRegistered: actual.intentRegistered,
+    permitConsumed: actual.consumed,
+    permitRevoked: actual.revoked,
+    currentProtectionActive: safeGuardConfigurationVerified,
+    prospectiveCall: candidate ? { permitId: candidate.permitId, to: intent.target, value: intent.value, data: intent.calldata, operation: intent.operation } : undefined,
+    reason: permitConsumedBySuccessfulExecution
+      ? "The finalized Safe/Guard state shows the canonical permit consumed at the intended nonce. The Guard's post-execution hook reverts unsuccessful Safe calls, so this committed consumption records a successful protected call."
+      : permitReadyForExecution
+        ? "The canonical permit and finalized Safe/Guard configuration match; it remains single-use and bound to the displayed nonce and call."
+        : "The finalized read is authoritative for the displayed block; no new execution is reported as authorized unless its canonical permit and Safe/Guard state match.",
   });
 }
 
