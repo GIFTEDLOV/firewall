@@ -4,7 +4,10 @@ import pytest
 
 
 def test_prospective_intent_is_frozen_and_uniquely_bound_before_authentication(direct_deploy):
-    firewall = direct_deploy("contracts/firewall_v3_9_prospective.py")
+    # genlayer-test 0.29.2 defaults to the obsolete genvm v0.3.0-rc7 URL.
+    # Pin the same official 0.6 runtime used by the deployed prospective
+    # contract's runtime qualification and by the rest of our direct suite.
+    firewall = direct_deploy("contracts/firewall_v3_9_prospective.py", sdk_version="v0.6.0-rc8")
     proposal_id = firewall.create_mandate("qualification-1", "Allow one exact zero-value test call from this controlled Safe. Do not alter owners, threshold, modules, or Guard.")
     assert proposal_id == "MAN3-00000001"
     firewall.freeze_mandate(proposal_id)
