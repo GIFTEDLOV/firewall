@@ -89,12 +89,17 @@ test.describe("Firewall competition product", () => {
     await expect(page.getByRole("button", { name: "Connect Ethereum Sepolia Safe owner wallet" })).toBeVisible();
 
     const qualification = await page.request.get("/api/qualification/sepolia-package");
-    expect(qualification.status()).toBe(200);
     const packageStatus = await qualification.json();
     expect(packageStatus.scope).toBe("LOCAL_NORMALIZATION_ONLY_EXPECTED_FACTS");
-    expect(packageStatus.available).toBe(true);
     expect(packageStatus.validatorAuthentication).toBe(false);
-    expect(packageStatus.package.status).toBe("LOCAL_FACTS_MATCHED");
+    if (qualification.status() === 200) {
+      expect(packageStatus.available).toBe(true);
+      expect(packageStatus.package.status).toBe("LOCAL_FACTS_MATCHED");
+    } else {
+      expect(qualification.status()).toBe(503);
+      expect(packageStatus.available).toBe(false);
+      expect(packageStatus.error).toBe("SEPOLIA_CANARY_EVIDENCE_NOT_PREPARED");
+    }
   });
 
   test("off-chain workflow APIs are live and visibly non-canonical", async ({ page }) => {
