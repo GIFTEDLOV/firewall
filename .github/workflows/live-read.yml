@@ -7,9 +7,9 @@ permissions:
   contents: read
 
 env:
-  FIREWALL_CONTRACT_ADDRESS: "0xEFD65978F54318349139c93c1576ED3eb6f187b6"
-  FIREWALL_CHAIN_ID: "61997"
-  FIREWALL_RPC_URL: "https://studio-dev.genlayer.com/api"
+  FIREWALL_CONTRACT_ADDRESS: "0x7Ab4Dc9B84f3fDEB90e9795976065F42Ea0b9528"
+  FIREWALL_CHAIN_ID: "61999"
+  FIREWALL_RPC_URL: "https://studio.genlayer.com/api"
 
 jobs:
   live-read:
