@@ -10,7 +10,13 @@ export const SAFE_GUARD_TYPES = {
   ],
 } as const;
 
-export function safeGuardDomain(chainId: bigint | number, guard: `0x${string}`) { return { name: "FirewallSafeGuard", version: "1", chainId, verifyingContract: guard } as const; }
+export function safeGuardDomain(chainId: bigint | number, guard: `0x${string}`) {
+  // viem's EIP-712 domain builder includes chainId only when it is a number;
+  // passing bigint silently omits the chain binding from the signed domain.
+  const normalizedChainId = Number(chainId);
+  if (!Number.isSafeInteger(normalizedChainId) || normalizedChainId <= 0) throw new Error("SAFE_GUARD_EIP712_CHAIN_ID_INVALID");
+  return { name: "FirewallSafeGuard", version: "1", chainId: normalizedChainId, verifyingContract: guard } as const;
+}
 export function safeGuardTypedData(chainId: bigint | number, guard: `0x${string}`, message: SafePermitAuthorization) { return { domain: safeGuardDomain(chainId, guard), types: SAFE_GUARD_TYPES, primaryType: "PermitAuthorization" as const, message }; }
 
 /** Must match the Solidity guard's nonce-bound lookup key exactly. */

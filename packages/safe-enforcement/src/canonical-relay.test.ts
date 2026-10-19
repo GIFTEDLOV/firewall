@@ -134,7 +134,7 @@ describe("canonical permit relay attestation", () => {
     const result = buildCanonicalRelayAuthorization(sepoliaState(), call({ targetChainId: 11155111n, safe: SEPOLIA_SAFE, to: SEPOLIA_TARGET, value: 0n }));
     expect(result.authorization.targetChainId).toBe(11155111n);
     expect(result.authorization.safe).toBe(SEPOLIA_SAFE);
-    expect(result.typedData.domain.chainId).toBe(11155111n);
+    expect(result.typedData.domain.chainId).toBe(11155111);
 
     const wrongEndpoint = state({ config: { contractAddress: "0x1111111111111111111111111111111111111111", chainId: 4221, rpcUrl: "https://rpc-asimov.genlayer.com", networkAlias: "testnet-bradbury" } });
     expect(() => buildCanonicalRelayAuthorization(wrongEndpoint, call())).toThrow("LIVE_CANONICAL_STATE_REQUIRED");

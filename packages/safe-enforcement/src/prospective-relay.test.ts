@@ -63,7 +63,7 @@ function model() {
   const adjudication = { adjudicationId: "ADJ3-00000001", intentId: INTENT_ID, generation: 1, intentSatisfied: true, scopeExpanded: false, prohibitedEffectPresent: false, economicTermsConsistent: true, administrativeAuthorityChanged: false, implementationBehaviorConsistent: true, evidenceSufficient: true, verdict: "PROSPECTIVE_AUTHORIZED" };
   const permit = { permitId: "PPR-00000001", intentId: INTENT_ID, mandateId: mandate.mandateId, adjudicationId: adjudication.adjudicationId, generation: 1, issuedAt: 1250, executionDeadline: 1500, expiresAt: 1600, intentHash, evidenceHash, bindingHash: "" as Hex, status: "ACTIVE" };
   permit.bindingHash = hashText([
-    "FIREWALL_PROSPECTIVE_PERMIT_V3", mandate.mandateId, mandate.proposalHash.slice(2), INTENT_ID, intentHash, evidenceHash,
+    "FIREWALL_PROSPECTIVE_PERMIT_V3", mandate.mandateId, mandate.proposalHash.toLowerCase(), INTENT_ID, intentHash, evidenceHash,
     adjudication.adjudicationId, "1", "11155111", SAFE, "3", TARGET, "9", base.calldataHash,
     "0", GUARD, base.guardCodeHash, "1500", "1600",
   ].join("|"));
@@ -90,6 +90,9 @@ describe("prospective canonical GenLayer relay", () => {
     expect(result.authorization.executionDeadline).toBe(1500n);
     expect(result.authorization.expiresAt).toBe(1400n);
     expect(result.authorization.safe).toBe(SAFE);
+    expect(result.authorization.dataHash).toBe(keccak256(DATA));
+    expect(result.typedData.domain.chainId).toBe(11155111);
+    expect(typeof result.typedData.domain.chainId).toBe("number");
   });
 
   it("accepts a pre-install snapshot only when the next owner-signed Safe nonce installs the intended Guard", () => {
@@ -111,7 +114,7 @@ describe("prospective canonical GenLayer relay", () => {
     intent.evidenceHash = evidenceHash;
     pending.permits[0].evidenceHash = evidenceHash;
     pending.permits[0].bindingHash = hashText([
-      "FIREWALL_PROSPECTIVE_PERMIT_V3", pending.mandates[0].mandateId, pending.mandates[0].proposalHash.slice(2),
+      "FIREWALL_PROSPECTIVE_PERMIT_V3", pending.mandates[0].mandateId, pending.mandates[0].proposalHash.toLowerCase(),
       intent.intentId, intent.intentHash, evidenceHash, pending.adjudications[0].adjudicationId, "1", "11155111",
       SAFE, "3", TARGET, "9", intent.calldataHash, "0", GUARD, intent.guardCodeHash, "1500", "1600",
     ].join("|"));

@@ -329,7 +329,7 @@ async function readProspectiveAttestation(journal, owner, relay, activeGuard, ex
   if (!call || typeof call.data !== "string" || typeof response.signature !== "string") throw new Error("RELAY_ATTESTATION_CALL_OR_SIGNATURE_MISSING");
   if (authorization.targetChainId !== BigInt(CHAIN_ID) || authorization.safe.toLowerCase() !== journal.safe.toLowerCase() || authorization.to.toLowerCase() !== call.to?.toLowerCase() || authorization.value !== BigInt(call.value) || authorization.dataHash.toLowerCase() !== keccak256(call.data).toLowerCase() || authorization.operation !== call.operation || authorization.permitId.toLowerCase() !== textHash(permitId).toLowerCase() || authorization.intentId.toLowerCase() !== intentId.toLowerCase() || authorization.adjudicationId.toLowerCase() !== textHash(adjudicationId).toLowerCase() || authorization.targetCodeHash.toLowerCase() !== journal.activeGuardRuntimeCodeHash.toLowerCase() || authorization.implementationAddress.toLowerCase() !== zeroAddress.toLowerCase() || authorization.implementationCodeHash.toLowerCase() !== ZERO_HASH.toLowerCase() || authorization.canonicalPermitHash.toLowerCase() === ZERO_HASH.toLowerCase()) throw new Error("RELAY_AUTHORIZATION_BINDING_MISMATCH");
   const recovered = await recoverTypedDataAddress({
-    domain: { name: "FirewallSafeGuard", version: "1", chainId: BigInt(CHAIN_ID), verifyingContract: activeGuard },
+    domain: { name: "FirewallSafeGuard", version: "1", chainId: CHAIN_ID, verifyingContract: activeGuard },
     types: authorizationTypes,
     primaryType: "PermitAuthorization",
     message: authorization,

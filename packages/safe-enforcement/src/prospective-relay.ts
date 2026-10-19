@@ -140,7 +140,10 @@ export function buildProspectiveRelayAuthorization(model: ProspectiveCanonicalMo
   const exactEvidenceHash = hashText(intent.authenticatedEvidence);
   if (exactEvidenceHash.toLowerCase() !== intent.evidenceHash.toLowerCase()) return fail("PROSPECTIVE_EVIDENCE_HASH_MISMATCH");
   const bindingHash = hashText([
-    "FIREWALL_PROSPECTIVE_PERMIT_V3", mandate.mandateId, mandate.proposalHash.slice(2).toLowerCase(),
+    // V3 derives the binding material from "0x" + proposal_hash.hex(). Keep
+    // the prefix here; stripping it changes the permit binding and prevents a
+    // valid canonical V3 permit from being attested.
+    "FIREWALL_PROSPECTIVE_PERMIT_V3", mandate.mandateId, mandate.proposalHash.toLowerCase(),
     intent.intentId.toLowerCase(), intent.intentHash.toLowerCase(), intent.evidenceHash.toLowerCase(),
     adjudication.adjudicationId, String(permit.generation), String(intent.chainId), intent.safe.toLowerCase(),
     String(intent.safeNonce), intent.target.toLowerCase(), intent.value, intent.calldataHash.toLowerCase(),
@@ -166,7 +169,10 @@ export function buildProspectiveRelayAuthorization(model: ProspectiveCanonicalMo
     permitId: permitIdHash, intentId: bytes32(intent.intentId, "intent_id"), mandateId: mandateIdHash,
     executionId: bytes32(intent.intentId, "execution_id"), proposalHash: bytes32(mandate.proposalHash, "proposal_hash"),
     executionBundleHash: bytes32(intent.intentHash, "intent_hash"), targetChainId: call.targetChainId,
-    safe: call.safe, to: call.to, value: call.value, dataHash: hashText(call.data), operation: call.operation,
+    // Safe Guard hashes the actual calldata bytes with keccak256(data).
+    // Hashing the printable "0x…" string would create an attestation that the
+    // deployed Guard must reject even when every other field matches.
+    safe: call.safe, to: call.to, value: call.value, dataHash: keccak256(call.data), operation: call.operation,
     safeNonce: call.safeNonce, targetsDigest: hashText(stable(targetList)), valuesDigest: hashText(stable(valueList)),
     calldataDigest: hashText(stable(calldataList)), codeFactsDigest: hashText(stable({ target_code_hash: intent.targetCodeHash.toLowerCase() })),
     implementationFactsDigest: hashText(stable({ safe_implementation_address: SAFE_SINGLETON, safe_implementation_code_hash: SAFE_SINGLETON_CODE_HASH })),
