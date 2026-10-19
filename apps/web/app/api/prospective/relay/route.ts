@@ -200,7 +200,11 @@ export async function POST(request: Request) {
     if (!isDistinctSafeRelaySigner(relaySigner, actual.owners as Address[])) return fail("UNSAFE_RELAY_SIGNER_IS_SAFE_OWNER", 409);
 
     const nowSeconds = blockA.timestamp;
-    const candidates = [nowSeconds + 600n, BigInt(permit.expiresAt), BigInt(permit.executionDeadline)];
+    // The Sepolia finalized tag took 61 minutes to include the Guard install
+    // during live qualification. Keep a two-hour relay window for dependent
+    // finality-gated registration/execution, still capped by both canonical V3
+    // deadlines. The Guard remains bound to one Safe nonce and consumes once.
+    const candidates = [nowSeconds + 7_200n, BigInt(permit.expiresAt), BigInt(permit.executionDeadline)];
     const attestationExpiry = candidates.reduce((minimum, value) => value < minimum ? value : minimum);
     const relay = buildProspectiveRelayAuthorization(canonical.model, {
       permitId, guard, targetChainId: BigInt(CHAIN_ID), safe, to: intent.target,
