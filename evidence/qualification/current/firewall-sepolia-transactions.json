@@ -15,17 +15,17 @@
   "maxAggregateDebitWei": "1000000000000000",
   "totalActualDebitWei": "345603453",
   "preflight": {
-    "checkedAt": "2026-10-18T22:48:58.576Z",
+    "checkedAt": "2026-10-19T06:52:38.494Z",
     "network": "ethereum-sepolia",
     "chainId": 11155111,
     "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
     "latestBlock": {
-      "number": "11944135",
-      "hash": "0xe38c354af534d437e4de5507a61ddf63a8185ae7c01d556e1c4e0289909b4ec1"
+      "number": "11946520",
+      "hash": "0x8ff7ac845cd0a33904791f8ed87a3faa6a695201b24fc5265b813a7c83974c6a"
     },
     "finalizedBlock": {
-      "number": "11944051",
-      "hash": "0x3fa5c4224e3a2cc077ceb34888843049d3f290ddb8507e7751523ae128aafd6b"
+      "number": "11946448",
+      "hash": "0x60ecc58ba7b7aec18a0b665b3308044485f19a620b4027875a1ae7ea701a18ef"
     },
     "owner": "0x33653e6e86807e41682d3346cdf648d6653384b1",
     "ownerBalanceWei": "9999999654396547",
@@ -282,10 +282,46 @@
       "finalizedAt": "2026-10-18T19:45:49.432Z",
       "submissionAcceptedHash": "0x22ad869486e0946760ce2bfba164a7c8d5d577cb645500c6ea88923379b22ff5",
       "lastPollAt": "2026-10-18T19:45:49.268Z"
+    },
+    "nonce_reservation_canary": {
+      "network": "ethereum-sepolia",
+      "chainId": 11155111,
+      "contract": "0x9387e30C1b1a864686Df80d46786C4F29fe735ba",
+      "signer": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+      "nonce": "5",
+      "method": "nonce_reservation_canary",
+      "argumentsSha256": "0x13fcaa2a17641635cc9fb97211e646db5d7b8a6d473d5df688e22cbc4a9b2a49",
+      "submissionHash": "0x49ea602cc449fd7870b069bf89b1dc24c0f768b5d0dbd4890534abfa3c2ddf1c",
+      "status": "MINED_WAITING_FOR_FINALIZED_TAG",
+      "consensusStatus": "EVM_RECEIPT_PENDING",
+      "executionOutcome": "PENDING",
+      "canonicalReadback": null,
+      "transactionTo": "0x9387e30C1b1a864686Df80d46786C4F29fe735ba",
+      "transactionData": "0x6a76120200000000000000000000000086eee74900dfd0418462808ae4e53047ded4583a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000041701d614acab441b954b959fe4ec8a916d70332d4f0f905287aff7bf5dcb47a1f50330904f5e8820e05ecf6a1d46bf4e5a268baf988d81b1dc84d04fa99300b331b00000000000000000000000000000000000000000000000000000000000000",
+      "estimatedGas": "68457",
+      "maxFeePerGasWei": "19",
+      "maxPriorityFeePerGasWei": "1",
+      "estimatedFeeWei": "1300683",
+      "actualFeeWei": "863488",
+      "valueTransferredWei": "0",
+      "expectedExecution": "SUCCESS",
+      "submittedAt": "2026-10-19T06:52:41.375Z",
+      "receipt": {
+        "transactionHash": "0x49ea602cc449fd7870b069bf89b1dc24c0f768b5d0dbd4890534abfa3c2ddf1c",
+        "blockNumber": "11946521",
+        "blockHash": "0xb003a377b0bb5148fc6dee26a6b35adcce732bc06ad3f31469a8cf240b4b3462",
+        "status": "SUCCESS",
+        "gasUsed": "53968",
+        "effectiveGasPriceWei": "16",
+        "logCount": 1
+      },
+      "finalizedAt": null,
+      "submissionAcceptedHash": "0x49ea602cc449fd7870b069bf89b1dc24c0f768b5d0dbd4890534abfa3c2ddf1c",
+      "lastPollAt": "2026-10-19T06:54:52.682Z"
     }
   },
   "checkpoint": "READY_FOR_EXPLICIT_ALLOWLISTED_SAFE_QUALIFICATION_WRITES",
-  "updatedAt": "2026-10-18T22:48:58.577Z",
+  "updatedAt": "2026-10-19T06:54:52.682Z",
   "approvalAndPreflight": {
     "spendAuthorization": "User authorized testnet enforcement qualification; internal safety cap remains 0.001 ETH.",
     "network": "ethereum-sepolia",
@@ -331,5 +367,15 @@
       "sourceSha256": "fe2b5ba370d9c55cd068238b4734a432439c96fa4fe6a3325e35145327566c24",
       "runtimeCodeHash": "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8"
     }
-  ]
+  ],
+  "safeCalls": {
+    "nonce_reservation_canary": {
+      "safeNonce": "1",
+      "target": "0x86eeE74900DfD0418462808aE4E53047dED4583a",
+      "valueWei": "0",
+      "data": "0x",
+      "safeTxHash": "0x8945cad8ab3398759c9ecedd68539ca2ddc2e1c6ea59306b3979e3388b7017cf",
+      "savedAt": "2026-10-19T06:52:39.218Z"
+    }
+  }
 }

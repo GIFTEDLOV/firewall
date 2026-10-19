@@ -123,6 +123,8 @@ type Journal = {
   proposalExternalId?: string;
   intentId?: Hex;
   intentArgs?: unknown[];
+  intentAttempt?: number;
+  supersededIntentRecords?: Array<Record<string, unknown>>;
   adjudicationId?: string;
   permitId?: string;
   safeAddress: string;
@@ -787,6 +789,36 @@ async function main() {
 
   let model = await reader();
   let intent = journal.intentId ? model.intents.find((item) => item.intentId === journal!.intentId) : undefined;
+  if (intent && intent.state === "INTENT_AUTHENTICATED" && intent.executionDeadline <= Math.floor(Date.now() / 1000) + 900) {
+    const adjudicationExists = model.adjudications.some((item) => item.intentId.toLowerCase() === intent!.intentId.toLowerCase());
+    const permitExists = model.permits.some((item) => item.intentId.toLowerCase() === intent!.intentId.toLowerCase());
+    const dependentPending = journal.steps.some((step) => /^(?:adjudicate_prospective_intent|issue_prospective_permit)/.test(step.key)
+      && /PENDING|TRACKING|UNCERTAIN|SUBMITTED/.test(step.status));
+    if (adjudicationExists || permitExists || dependentPending || intent.adjudicationId !== "") throw new Error("EXPIRED_INTENT_HAS_DEPENDENT_STATE_RECONCILE_BEFORE_REQUALIFICATION");
+    journal.supersededIntentRecords = [...(journal.supersededIntentRecords ?? []), {
+      intentId: intent.intentId, mandateId: intent.mandateId, state: intent.state,
+      evidenceHash: intent.evidenceHash, executionDeadline: intent.executionDeadline,
+      permitExpiry: intent.permitExpiry, supersededAt: now(),
+      reason: "ORIGINAL_PROSPECTIVE_INTENT_EXPIRED_DURING_SESSION_GAP_NO_ADJUDICATION_OR_PERMIT_EXISTS",
+    }];
+    journal.intentAttempt = Math.max(journal.intentAttempt ?? 1, 1) + 1;
+    journal.intentId = undefined;
+    journal.intentArgs = undefined;
+    journal.adjudicationId = undefined;
+    journal.permitId = undefined;
+    journal.finalCanonicalReadback = undefined;
+    journal.safeNonceBeforeInstallation = undefined;
+    journal.intendedExecutionNonce = undefined;
+    journal.status = "EXPIRED_INTENT_ARCHIVED_FRESH_INTENT_REQUIRED_NO_PERMIT_ISSUED";
+    save(journal);
+    intent = undefined;
+  }
+  const intentAttempt = journal.intentAttempt ?? 1;
+  const attemptSuffix = intentAttempt > 1 ? `_attempt_${intentAttempt}` : "";
+  const commitIntentStepKey = `commit_prospective_intent${attemptSuffix}`;
+  const authenticateIntentStepKey = `authenticate_prospective_intent${attemptSuffix}`;
+  const adjudicateIntentStepKey = `adjudicate_prospective_intent${attemptSuffix}`;
+  const issuePermitStepKey = `issue_prospective_permit${attemptSuffix}`;
   if (!intent && model.intents.some((item) => item.safe.toLowerCase() === SAFE.toLowerCase() && item.safeNonce === Number(journal.intendedExecutionNonce ?? -1))) throw new Error("V3_SAFE_NONCE_ALREADY_COMMITTED_TO_OTHER_INTENT_RECOVER_BEFORE_WRITE");
   if (!intent) {
     let args: unknown[];
@@ -817,7 +849,7 @@ async function main() {
       save(journal);
     }
     if (!intent && journal.intentId && Array.isArray(journal.intentArgs)) {
-      const failedCommit = stepFor(journal, "commit_prospective_intent");
+      const failedCommit = stepFor(journal, commitIntentStepKey);
       if (failedCommit?.genlayerTransactionId && failedCommit.status === "GENLAYER_FINALIZED_CONSENSUS_OR_EXECUTION_FAILED_STOP") {
         const failedConsensus = failedCommit.consensus ?? {};
         const validatorState = failedConsensus.validatorState as Record<string, unknown> | undefined;
@@ -832,7 +864,7 @@ async function main() {
       }
     }
     if (Number(args[2]) !== EVM_CHAIN_ID || String(args[3]).toLowerCase() !== SAFE.toLowerCase()) throw new Error("PROSPECTIVE_INTENT_EVM_CHAIN_OR_SAFE_BINDING_MISMATCH_STOP");
-    await runWrite({ journal, client, account, key: "commit_prospective_intent", method: "commit_prospective_intent", args, address: contractAddress, readModel: reader, postcondition: (model) => {
+    await runWrite({ journal, client, account, key: commitIntentStepKey, method: "commit_prospective_intent", args, address: contractAddress, readModel: reader, postcondition: (model) => {
       const item = model.intents.find((value) => value.intentId.toLowerCase() === intentId.toLowerCase());
       return item && item.chainId === EVM_CHAIN_ID ? { intentId: item.intentId, state: item.state, chainId: item.chainId, safe: item.safe, safeNonce: item.safeNonce, target: item.target, value: item.value, calldataHash: item.calldataHash, operation: item.operation, evidenceBlock: item.evidenceBlock, guard: item.guard } : null;
     } });
@@ -842,7 +874,7 @@ async function main() {
   intent = model.intents.find((item) => item.intentId.toLowerCase() === journal!.intentId!.toLowerCase());
   if (!intent) throw new Error("V3_INTENT_CANONICAL_READBACK_MISSING");
   if (intent.state === "INTENT_COMMITTED") {
-    const priorAuth = stepFor(journal, "authenticate_prospective_intent");
+    const priorAuth = stepFor(journal, authenticateIntentStepKey);
     if (priorAuth?.genlayerTransactionId && priorAuth.status === "GENLAYER_FINALIZED_CONSENSUS_OR_EXECUTION_FAILED_STOP") {
       const summary = priorAuth.consensus ?? {};
       const authenticatedStateUnchanged = intent.authenticatedEvidence === "" && intent.evidenceHash === `0x${"00".repeat(32)}` && intent.adjudicationId === "" && !model.adjudications.some((item) => item.intentId.toLowerCase() === intent!.intentId.toLowerCase()) && !model.permits.some((item) => item.intentId.toLowerCase() === intent!.intentId.toLowerCase());
@@ -855,7 +887,7 @@ async function main() {
       priorAuth.canonicalReadback = { intentId: intent.intentId, state: intent.state, evidenceHash: intent.evidenceHash, authenticatedEvidenceLength: intent.authenticatedEvidence.length, adjudicationId: intent.adjudicationId, adjudicationsForIntent: 0, permitsForIntent: 0, priorConsensus: "MAJORITY_DISAGREE", reconciledAt: now() };
       save(journal);
     }
-    await runWrite({ journal, client, account, key: "authenticate_prospective_intent", method: "authenticate_prospective_intent", args: [intent.intentId], address: contractAddress, readModel: reader, postcondition: (next) => {
+    await runWrite({ journal, client, account, key: authenticateIntentStepKey, method: "authenticate_prospective_intent", args: [intent.intentId], address: contractAddress, readModel: reader, postcondition: (next) => {
       const item = next.intents.find((value) => value.intentId.toLowerCase() === intent!.intentId.toLowerCase());
       if (!item || item.state !== "INTENT_AUTHENTICATED" || item.evidenceHash === `0x${"00".repeat(32)}`) return null;
       try {
@@ -874,7 +906,7 @@ async function main() {
   intent = model.intents.find((item) => item.intentId.toLowerCase() === journal!.intentId!.toLowerCase())!;
   let adjudication = model.adjudications.find((item) => item.intentId.toLowerCase() === intent.intentId.toLowerCase());
   if (intent.state === "INTENT_AUTHENTICATED" && !adjudication) {
-    await runWrite({ journal, client, account, key: "adjudicate_prospective_intent", method: "adjudicate_prospective_intent", args: [intent.intentId], address: contractAddress, readModel: reader, postcondition: (next) => {
+    await runWrite({ journal, client, account, key: adjudicateIntentStepKey, method: "adjudicate_prospective_intent", args: [intent.intentId], address: contractAddress, readModel: reader, postcondition: (next) => {
       const item = next.adjudications.find((value) => value.intentId.toLowerCase() === intent!.intentId.toLowerCase());
       if (!item) return null;
       return { adjudicationId: item.adjudicationId, intentId: item.intentId, verdict: item.verdict, generation: item.generation, evidenceSufficient: item.evidenceSufficient, intentSatisfied: item.intentSatisfied, scopeExpanded: item.scopeExpanded, prohibitedEffectPresent: item.prohibitedEffectPresent, economicTermsConsistent: item.economicTermsConsistent, administrativeAuthorityChanged: item.administrativeAuthorityChanged, implementationBehaviorConsistent: item.implementationBehaviorConsistent };
@@ -889,7 +921,7 @@ async function main() {
 
   let permit = model.permits.find((item) => item.intentId.toLowerCase() === intent.intentId.toLowerCase());
   if (!permit) {
-    await runWrite({ journal, client, account, key: "issue_prospective_permit", method: "issue_prospective_permit", args: [intent.intentId, adjudication.adjudicationId], address: contractAddress, readModel: reader, postcondition: (next) => {
+    await runWrite({ journal, client, account, key: issuePermitStepKey, method: "issue_prospective_permit", args: [intent.intentId, adjudication.adjudicationId], address: contractAddress, readModel: reader, postcondition: (next) => {
       const found = next.permits.find((value) => value.intentId.toLowerCase() === intent!.intentId.toLowerCase());
       return found && found.status === "ACTIVE" && next.permitStatuses[found.permitId] === "ACTIVE" ? { permitId: found.permitId, intentId: found.intentId, mandateId: found.mandateId, adjudicationId: found.adjudicationId, bindingHash: found.bindingHash, status: found.status, permitStatus: next.permitStatuses[found.permitId], expiresAt: found.expiresAt, safe: intent!.safe, chainId: intent!.chainId, safeNonce: intent!.safeNonce, target: intent!.target, value: intent!.value, calldataHash: intent!.calldataHash, operation: intent!.operation } : null;
     } });

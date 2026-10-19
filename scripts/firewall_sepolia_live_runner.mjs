@@ -34,7 +34,7 @@ const RELAY_KEYCHAIN_ACCOUNT = "account:firewall-relay-qualification";
 const ALLOWED = new Set([
   "preflight", "create-safe", "canary", "deploy-guard", "deploy-guard-revision", "transfer-guard-owner",
   "install-guard", "blocked-execution", "blocked-wrong-target", "blocked-wrong-calldata",
-  "register-authorization", "authorized-execution", "replay-execution",
+  "nonce-reservation-canary", "register-authorization", "authorized-execution", "replay-execution",
   "expired-authorization", "wrong-signer-authorization", "status",
 ]);
 
@@ -694,6 +694,7 @@ async function main() {
   if (!journal.safe) throw new Error("SAFE_CREATION_MUST_FINALIZE_BEFORE_THIS_ACTION");
   const safe = journal.safe;
   const identity = await assertSafeIdentity(safe, owner.address);
+  const activeGuard = journal.activeGuard ?? journal.guard;
 
   if (action === "canary") {
     if (journal.transactions.canary?.finalizedAt && journal.transactions.canary.canonicalReadback) return journal.transactions.canary;
@@ -718,6 +719,48 @@ async function main() {
     saveJournal(journal);
     await refreshCheckpoint(journal, "SAFE_CANARY_FINALIZED_SUCCESS_AND_CANONICAL_READBACK");
     return;
+  }
+
+  if (action === "nonce-reservation-canary") {
+    // The first prospective intent expired before adjudication. Reserve one
+    // additional Safe nonce while the Guard is still uninstalled so the next
+    // intent gets a fresh, unused nonce. This canary only calls the relay EOA
+    // with zero value and empty calldata; it cannot alter Safe configuration.
+    const entry = "nonce_reservation_canary";
+    const old = journal.transactions[entry];
+    if (old?.finalizedAt && old.canonicalReadback) return old;
+    const [guardWord, ownerOnGuard, guardSafe, guardAllowed, guardCode] = await Promise.all([
+      publicClient.readContract({ address: safe, abi: safeAbi, functionName: "getStorageAt", args: [SAFE_GUARD_STORAGE_SLOT, 1n] }),
+      publicClient.readContract({ address: activeGuard, abi: guardAdminAbi, functionName: "owner" }),
+      publicClient.readContract({ address: activeGuard, abi: guardAdminAbi, functionName: "safe" }),
+      publicClient.readContract({ address: activeGuard, abi: guardAdminAbi, functionName: "authorizedRelayer", args: [relay.address] }),
+      publicClient.getCode({ address: activeGuard }),
+    ]);
+    const installed = `0x${guardWord.slice(-40)}`;
+    if (installed.toLowerCase() !== zeroAddress.toLowerCase()) throw new Error("NONCE_RESERVATION_REQUIRES_GUARD_UNINSTALLED");
+    if (ownerOnGuard.toLowerCase() !== safe.toLowerCase() || guardSafe.toLowerCase() !== safe.toLowerCase() || !guardAllowed || !guardCode || guardCode === "0x" || keccak256(guardCode).toLowerCase() !== journal.activeGuardRuntimeCodeHash.toLowerCase()) throw new Error("NONCE_RESERVATION_GUARD_IDENTITY_MISMATCH");
+    const before = BigInt(identity.nonce);
+    if (before !== 1n) throw new Error(`NONCE_RESERVATION_SAFE_NONCE_UNEXPECTED:${before}`);
+    const details = await durableSafeCallDetails(journal, owner, entry, relay.address, 0n, "0x");
+    if (BigInt(details.safeNonce) !== before) throw new Error("NONCE_RESERVATION_SAFE_CALL_NONCE_MISMATCH");
+    await sendOwnerTransaction(journal, owner, entry, safe, details.dataToSafe, {
+      afterFinalized: async (receipt) => {
+        const success = parseEventLogs({ abi: safeAbi, logs: receipt.logs, eventName: "ExecutionSuccess" });
+        const [fresh, nonce, freshGuardWord, modules] = await Promise.all([
+          assertSafeIdentity(safe, owner.address),
+          publicClient.readContract({ address: safe, abi: safeAbi, functionName: "nonce" }),
+          publicClient.readContract({ address: safe, abi: safeAbi, functionName: "getStorageAt", args: [SAFE_GUARD_STORAGE_SLOT, 1n] }),
+          publicClient.readContract({ address: safe, abi: safeAbi, functionName: "getModulesPaginated", args: [SAFE_MODULE_SENTINEL, 10n] }),
+        ]);
+        const freshInstalled = `0x${freshGuardWord.slice(-40)}`;
+        if (success.length !== 1 || BigInt(nonce) !== before + 1n || freshInstalled.toLowerCase() !== zeroAddress.toLowerCase() || modules[0].length !== 0 || modules[1].toLowerCase() !== SAFE_MODULE_SENTINEL.toLowerCase()) throw new Error("NONCE_RESERVATION_SAFE_READBACK_FAILED");
+        return { ...fresh, installedGuard: freshInstalled, modulePathDisabled: true, executionSuccessEvent: true, target: relay.address, valueWei: "0", calldata: "0x", operation: 0, safeNonceBefore: before.toString(), safeNonceAfter: nonce.toString(), safeTransactionHash: details.safeTxHash, reason: "EXPIRED_PRIOR_INTENT_NONCE_CANNOT_BE_REUSED" };
+      },
+    });
+    journal.transactions[entry].safeTransaction = { nonce: details.safeNonce, target: relay.address, valueWei: "0", calldata: "0x", operation: 0, hash: details.safeTxHash };
+    saveJournal(journal);
+    await refreshCheckpoint(journal, "SAFE_NONCE_RESERVED_FOR_FRESH_PROSPECTIVE_INTENT_GUARD_STILL_UNINSTALLED");
+    return journal.transactions[entry];
   }
 
   const { artifact, actualSourceHash } = artifactAndHash();
@@ -789,7 +832,6 @@ async function main() {
     return record;
   }
 
-  const activeGuard = journal.activeGuard ?? journal.guard;
   if (!activeGuard) throw new Error("GUARD_DEPLOYMENT_MUST_FINALIZE_BEFORE_THIS_ACTION");
   if (action === "transfer-guard-owner") {
     const data = encodeFunctionData({ abi: artifact.abi, functionName: "transferOwnership", args: [safe] });
