@@ -697,7 +697,14 @@ async function main() {
   let existingRunReport: Awaited<ReturnType<typeof resumePreflight>> | null = null;
   if (existing && action !== "preflight") {
     if (action === "resume" || action === "run") {
-      const pending = existing.steps.find((step) => step.status.includes("PENDING") || step.status.includes("TRACKING") || step.status.includes("UNCERTAIN") || step.status.includes("SUBMITTED"));
+      // A failed SDK preflight is journaled as NOT_SUBMITTED_BEFORE_SDK_BROADCAST.
+      // It contains the substring "SUBMITTED" but has no hash, so it is safe to
+      // retry only after the canonical postcondition and current nonce are checked
+      // by runWrite. Any real submission must have its hash persisted before send.
+      const pending = existing.steps.find((step) =>
+        Boolean(step.evmSubmissionHash || step.genlayerTransactionId)
+        && (step.status.includes("PENDING") || step.status.includes("TRACKING") || step.status.includes("UNCERTAIN") || step.status.includes("SUBMITTED"))
+      );
       if (pending?.evmSubmissionHash || pending?.genlayerTransactionId) await trackStep(existing, client, pending.key);
       else if (pending) throw new Error(`V3_PREPARED_OPERATION_HAS_NO_HASH_RECONCILE_NONCE:${pending.key}`);
       if (action === "resume") {
