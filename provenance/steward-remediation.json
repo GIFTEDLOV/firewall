@@ -1,0 +1,29 @@
+{
+  "remediation": "GENLAYER_STEWARD_REMEDIATION",
+  "starting_head": "0b9f4feb005caa0b748c9f6683cbc28b1d7d6392",
+  "github_head_verified": "0b9f4feb005caa0b748c9f6683cbc28b1d7d6392",
+  "historical_contract": {
+    "address": "0xEFD65978F54318349139c93c1576ED3eb6f187b6",
+    "chain_id": 61997,
+    "sha256": "2b9396f217880a5cdc8a3b4c7adcdce9e3b7ad2cdf975cb847165ce258645735",
+    "source": "contracts/firewall.py",
+    "changed": false
+  },
+  "v2_candidate": {
+    "source": "contracts/firewall_v2_candidate.py",
+    "deployment": "NOT_DEPLOYED",
+    "sha256": "51b5a83af8456393fcf35448c70d8f70a8f071f123c4d327d3134965df0a09cc"
+  },
+  "evm_enforcement": {
+    "source": "contracts/FirewallSafeGuard.sol",
+    "deployment": "LOCAL_GANACHE_ONLY",
+    "public_deployment": false
+  },
+  "external_writes": {
+    "public_chain_writes": 0,
+    "genlayer_writes": 0,
+    "vercel_deployments": 0,
+    "github_pushes": 0,
+    "portal_submissions": 0
+  }
+}

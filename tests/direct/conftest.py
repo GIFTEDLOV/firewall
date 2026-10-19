@@ -7,8 +7,63 @@ semantics and lets the test VM restore fd 0 during teardown.
 """
 
 import os
+import importlib
 
 from gltest.direct import loader
+
+
+def _import_calldata_compat():
+    try:
+        from genlayer import calldata
+        return calldata
+    except ImportError:
+        return importlib.import_module("genlayer.py.calldata")
+
+
+def _import_address_compat():
+    try:
+        from genlayer import types as sdk_types
+        return sdk_types.Address
+    except ImportError:
+        from genlayer import Address
+        return Address
+
+
+def _import_lazy_compat():
+    try:
+        from genlayer import types as sdk_types
+        return sdk_types.Lazy
+    except ImportError:
+        from genlayer.py.types import Lazy
+        return Lazy
+
+
+# genlayer-test's current Direct Mode helper targets the v0.3
+# ``genlayer.calldata`` layout. The pinned v0.6 runtime used by the deployed
+# V2 contract exposes the equivalent module at ``genlayer.py.calldata``.
+loader.import_calldata = _import_calldata_compat
+loader.import_address = _import_address_compat
+loader.import_lazy = _import_lazy_compat
+_allocate_contract_v03 = loader._allocate_contract
+
+def _allocate_contract_compat(contract_cls, vm, *args, **kwargs):
+    try:
+        generate = importlib.import_module("genlayer.py.storage._internal.generate")
+        core = importlib.import_module("genlayer.py.storage._internal.core")
+        td = generate._storage_build(contract_cls, {})
+        instance = td.get(vm._storage.get_store_slot(core.ROOT_SLOT_ID), 0)
+        init = getattr(td, "cls", None)
+        init = getattr(init, "__init__", None) if init is not None else getattr(contract_cls, "__init__", None)
+        if init is not None:
+            if hasattr(init, generate.ORIGINAL_INIT_ATTR):
+                init = getattr(init, generate.ORIGINAL_INIT_ATTR)
+            init(instance, *args, **kwargs)
+        return loader._make_contract_proxy(instance)
+    except ImportError:
+        return _allocate_contract_v03(contract_cls, vm, *args, **kwargs)
+
+
+loader._allocate_contract = _allocate_contract_compat
 
 
 def _inject_message_via_pipe(vm) -> None:

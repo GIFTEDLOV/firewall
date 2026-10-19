@@ -4,22 +4,31 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./canonical-reader": "./src/canonical-reader.ts",
+    "./prospective-reader": "./src/prospective-reader.ts",
+    "./studionet-workflow": "./src/studionet-workflow.ts",
+    "./network-config": "./src/network-config.ts",
+    "./durable-transaction": "./src/durable-transaction.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run --config vitest.config.ts"
+    "test": "vitest run --config vitest.config.ts",
+    "firewall:studionet:v3-9:preflight": "tsx scripts/firewall_studionet_v3_9_runner.ts preflight",
+    "firewall:studionet:v3-9:run": "tsx scripts/firewall_studionet_v3_9_runner.ts run",
+    "firewall:studionet:v3-9:resume": "tsx scripts/firewall_studionet_v3_9_runner.ts resume",
+    "firewall:studionet:v3-9:status": "tsx scripts/firewall_studionet_v3_9_runner.ts status"
   },
   "dependencies": {
     "@firewall/domain": "workspace:*",
     "@firewall/evidence": "workspace:*",
     "@firewall/policy-engine": "workspace:*",
-    "genlayer-js": "github:genlayerlabs/genlayer-js#facd9e9dc9a289d0110fe3b5b1a14a2938fe6e01",
+    "genlayer-js": "1.1.8",
     "viem": "2.21.54"
   },
   "devDependencies": {
     "@types/node": "24.7.0",
     "typescript": "5.9.2",
-    "vitest": "3.2.4"
+    "vitest": "4.1.11"
   }
 }

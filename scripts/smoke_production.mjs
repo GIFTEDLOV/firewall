@@ -2,9 +2,10 @@ import { chromium, request as playwrightRequest } from "@playwright/test";
 
 const baseUrl = process.env.PRODUCTION_BASE_URL ?? "https://firewall-xi.vercel.app";
 const expected = {
-  contract: "0xEFD65978F54318349139c93c1576ED3eb6f187b6",
-  chain: 61997,
-  schema: "FIREWALL_MANDATE_V1",
+  contract: "0x7Ab4Dc9B84f3fDEB90e9795976065F42Ea0b9528",
+  chain: 61999,
+  schema: "FIREWALL_MANDATE_V2",
+  evidenceSchema: "FIREWALL_EVM_EVIDENCE_V3",
   keys: [
     "intent_satisfied",
     "scope_expanded",
@@ -51,22 +52,17 @@ try {
       assert(body.scope === "CANONICAL_LIVE_READ", "read-model: wrong provenance scope");
       assert(body.canonical === true && body.writeAuthority === "NONE", "read-model: unsafe provenance");
       const model = json(body.model, "read-model.model");
+      assert(model.source === "LIVE_CANONICAL", "read-model: fixture or unknown source");
       assert(model.config.contractAddress.toLowerCase() === expected.contract.toLowerCase(), "read-model: contract mismatch");
       assert(model.config.chainId === expected.chain, "read-model: chain mismatch");
       assert(model.semanticSchema === expected.schema, "read-model: schema mismatch");
+      assert(model.evidenceSchema === expected.evidenceSchema, "read-model: evidence schema mismatch");
       assert(JSON.stringify(model.semanticKeys) === JSON.stringify(expected.keys), "read-model: semantic keys mismatch");
-      assert(model.mandates.length === 1, "read-model: mandate count mismatch");
-      assert(model.executions.length === 2, "read-model: execution count mismatch");
-      assert(model.evidence.length === 2, "read-model: evidence count mismatch");
-      assert(model.adjudications.length === 2, "read-model: adjudication count mismatch");
-      assert(model.permits.length === 1, "read-model: permit count mismatch");
-      const compliant = model.adjudications.find((item) => item.adjudicationId === "ADJ-00000001");
-      const adversarial = model.adjudications.find((item) => item.adjudicationId === "ADJ-00000002");
-      assert(compliant?.verdict === "EXECUTION_PERMITTED", "read-model: compliant verdict mismatch");
-      assert(adversarial?.verdict === "INCONCLUSIVE" && adversarial.evidenceSufficient === false, "read-model: adversarial verdict mismatch");
-      assert(model.permits.some((item) => item.permitId === "PRM-00000001"), "read-model: compliant permit missing");
-      assert(!model.permits.some((item) => item.adjudicationId === "ADJ-00000002"), "read-model: adversarial permit present");
-      smoke.api.liveModel = { schema: model.semanticSchema, counts: [model.mandates.length, model.executions.length, model.evidence.length, model.adjudications.length, model.permits.length] };
+      assert(Array.isArray(model.mandates) && Array.isArray(model.executions) && Array.isArray(model.evidence) && Array.isArray(model.adjudications) && Array.isArray(model.permits), "read-model: V2 state shape mismatch");
+      assert(model.mandates.length > 0 && model.executions.length > 0 && model.evidence.length > 0 && model.adjudications.length > 0 && model.permits.length > 0, "read-model: live qualification has not produced canonical permit state");
+      const permitted = model.adjudications.find((item) => item.verdict === "EXECUTION_PERMITTED");
+      assert(permitted && model.permits.some((item) => item.executionId === permitted.executionId), "read-model: no permitted adjudication has a matching canonical permit");
+      smoke.api.liveModel = { schema: model.semanticSchema, evidenceSchema: model.evidenceSchema, counts: [model.mandates.length, model.executions.length, model.evidence.length, model.adjudications.length, model.permits.length] };
     }
     if (path === "/api/activity") {
       assert(body.scope === "CANONICAL_LIVE_READ" && body.canonical === true, "activity: wrong provenance scope");
@@ -111,10 +107,10 @@ try {
     await page.goto(`${baseUrl}/`, { waitUntil: "networkidle", timeout: 60000 });
     await page.getByRole("heading", { name: /Governance approved one thing/ }).waitFor();
     await page.getByText("Semantic execution security / GenLayer", { exact: true }).waitFor();
-    await page.getByText(/Live proof/i).first().waitFor();
+    await page.getByText(/Canonical state/i).first().waitFor();
     await pause();
     await page.goto(`${baseUrl}/app`, { waitUntil: "networkidle", timeout: 60000 });
-    await page.getByText("LIVE READ", { exact: true }).first().waitFor();
+    await page.getByText("CONTRACT RECORDS", { exact: true }).first().waitFor();
     await page.getByText("EXECUTION_PERMITTED", { exact: true }).first().waitFor();
     await page.getByText("INCONCLUSIVE", { exact: true }).first().waitFor();
     await page.getByText("NO PERMIT", { exact: true }).first().waitFor();

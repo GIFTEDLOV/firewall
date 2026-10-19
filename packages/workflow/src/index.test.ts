@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createLocalWorkflowRuntime } from "./index.js";
+import { assertProtectedExecutionReady, createLocalWorkflowRuntime } from "./index.js";
 
 function emptyCanonicalReader() {
   return {
@@ -32,5 +32,9 @@ describe("local pre-chain workflow boundary", () => {
       implementation_behavior_consistent: true,
       evidence_sufficient: false,
     }).verdict).toBe("INCONCLUSIVE");
+  });
+
+  it("does not prepare protected execution from local or stale claims", () => {
+    expect(() => assertProtectedExecutionReady({ evidenceStatus: "UNVERIFIED", permit: null, canonicalPermitRead: false, attestationVerified: false, targetChainId: 1, safeAddress: "0x1111111111111111111111111111111111111111", permitSafeAddress: "0x1111111111111111111111111111111111111111", executionBundleHash: "0xaa", permitExecutionBundleHash: "0xaa", nowOnTargetChain: 1 })).toThrow("PROTECTED_EXECUTION_REQUIRES_VERIFIED_EVIDENCE");
   });
 });

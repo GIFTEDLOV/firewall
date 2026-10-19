@@ -1,0 +1,69 @@
+{
+  "purpose": "FIREWALL_V2_INDEPENDENT_EVIDENCE_QUALIFICATION",
+  "status": "CONTRACT_DEPLOYED_QUALIFICATION_PENDING",
+  "contract": {
+    "source": "contracts/firewall_v2_candidate.py",
+    "source_sha256": "b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163",
+    "abi": null,
+    "schema": "artifacts/firewall_v2_candidate.schema.json",
+    "schema_sha256": "b313e74d96845f21eae755cdf60329f8c8306ff57f461a9459b42f70f2ae0eca",
+    "evidence_schema": "FIREWALL_EVM_EVIDENCE_V3",
+    "semantic_schema": "FIREWALL_MANDATE_V2",
+    "historical_v1_unchanged": true
+  },
+  "historical_evm_case": {
+    "chain_id": 1,
+    "governance_contract": "0x954a62cbc5b48af7342dfd00e40bf2c9f6de9d19",
+    "transaction_hash": "0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+    "block_number": 22848240,
+    "block_hash": "0x7575def35e24de6592b7da4f111db054bc3f2e84506c82126e280941c99a9770",
+    "safe_implementation_address": "0xd9db270c1b5e3bd161e8c8503c55ceabee709552",
+    "receipt_status": "SUCCESS",
+    "execution_outcome": "SAFE_EXECUTION_SUCCESS",
+    "supported_mode": "SAFE_DIRECT_CALL_ONLY",
+    "target": "0xed34f7bc88749c4ab19e24b3ac43db50afb5f77c",
+    "value_wei": "500000000000000000",
+    "calldata": "0x"
+  },
+  "independent_sources": {
+    "provider_1": {
+      "operator": "Blockscout",
+      "kind": "BLOCKSCOUT_V2",
+      "transaction": "https://eth.blockscout.com/api/v2/transactions/0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "block": "https://eth.blockscout.com/api/v2/blocks/22848240",
+      "logs": "https://eth.blockscout.com/api/v2/transactions/0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb/logs",
+      "implementation": "https://eth.blockscout.com/api/v2/smart-contracts/0xd9db270c1b5e3bd161e8c8503c55ceabee709552"
+    },
+    "provider_2": {
+      "operator": "Routescan",
+      "kind": "ROUTESCAN_ETHEREUM",
+      "transaction": "https://api.routescan.io/v2/network/mainnet/evm/1/transactions/0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "transaction_payload": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getTransactionByHash&txhash=0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "receipt": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getTransactionReceipt&txhash=0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb",
+      "block": "https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api?module=proxy&action=eth_getBlockByNumber&tag=0x15ca2f0&boolean=false",
+      "internal": "https://api.routescan.io/v2/network/mainnet/evm/1/internal-operations?txHash=0xd093d4ebae3c529a950002a123e1f58a412b56c87b2c2dcb22704708f8f3f9eb"
+    },
+    "operators_distinct": true,
+    "not_two_urls_under_one_rpc_operator": true
+  },
+  "proofs": {
+    "provider_preflight": "scripts/verify_v2_historical_evidence.py fetched Blockscout and Routescan native schemas and produced identical canonical facts; this is local provider verification only",
+    "tampered_expected_calldata": "0xdeadbeef",
+    "tampered_result": "REJECTED_BY_AUTHENTICATED_SOURCE_BOUNDARY",
+    "current_recheck": "Blockscout and Routescan returned HTTP 200; native transaction, receipt, block, logs, and internal-operation facts matched",
+    "validator_path": "Source implements strict_eq and independent nondeterministic provider retrieval; LIVE leader and validator retrieval has NOT been observed",
+    "enforcement_proof": "scripts/test_safe_guard.mjs passed on local Ganache chain 31337; this is not a public EVM deployment"
+  },
+  "deployment": {
+    "genlayer_target": "Studionet",
+    "chain_id": 61999,
+    "v2_deployed": true,
+    "contract_address": "0x7Ab4Dc9B84f3fDEB90e9795976065F42Ea0b9528",
+    "deployment_transaction": "0xa3f25170cfa592fa5d289c8c9a9f9662b58815150c02190478f39ed5cb084c20",
+    "source_sha256": "b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163",
+    "public_evm_guard_deployed": false,
+    "qualification_writes": 0,
+    "qualification_transactions": [],
+    "gen_spent": "0"
+  }
+}

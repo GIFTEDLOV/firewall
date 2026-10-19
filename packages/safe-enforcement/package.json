@@ -1,0 +1,22 @@
+{
+  "name": "@firewall/safe-enforcement",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./prospective-relay": "./src/prospective-relay.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@firewall/genlayer-client": "workspace:*",
+    "viem": "2.21.54"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "vitest": "4.1.11"
+  }
+}

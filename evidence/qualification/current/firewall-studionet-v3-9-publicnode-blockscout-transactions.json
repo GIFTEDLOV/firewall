@@ -1,0 +1,1225 @@
+{
+  "schema": "FIREWALL_STUDIONET_PROSPECTIVE_V3_QUALIFICATION_V1",
+  "network": "studionet",
+  "chainId": 61999,
+  "rpcUrl": "https://studio.genlayer.com/api",
+  "sdkVersion": "1.1.8",
+  "signer": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+  "initialBalanceWei": "4999999999999999970",
+  "sourceSha256": "9bf5631b8f537cbe27bd82457db055c016fc53e0f8499a22223424189b66b3a3",
+  "schemaSha256": "49cbbbc0a319b32be8e0a221ed11857aa832cb460737820af221924beaeeb0a8",
+  "contractAddress": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+  "status": "PROSPECTIVE_V3_FINALIZED_CANONICAL_PERMIT_ACTIVE",
+  "preflight": {
+    "checkedAt": "2026-10-19T07:28:35.363Z",
+    "chainId": 61999,
+    "rpcUrl": "https://studio.genlayer.com/api",
+    "signer": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+    "latestNonce": "69",
+    "pendingNonce": "69",
+    "balanceWei": "4999999999999999970",
+    "gasPriceWei": "0",
+    "consensus": "0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575",
+    "protocolFeeEstimate": "not exposed by stable Studionet RPC; native SDK path retained"
+  },
+  "safeAddress": "0x9387e30C1b1a864686Df80d46786C4F29fe735ba",
+  "guardAddress": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+  "steps": [
+    {
+      "key": "deployment",
+      "method": "deployContract",
+      "argumentsSha256": "0xe4d3ce059171bfb989f0e3ff3b2b01dbe294413e9d23c1dc7d589735a2fd78d3",
+      "args": [],
+      "senderNonce": "63",
+      "status": "DEPLOYMENT_SOURCE_SCHEMA_AND_ADDRESS_CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+      "submittedAt": "2026-10-18T22:30:30.867Z",
+      "evmSubmissionHash": "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+        "transactionIndex": "0x0",
+        "blockHash": "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+            "transactionIndex": 0,
+            "blockHash": "0x44a4e956680c806c91ccfd3208fd040db487288b8e20a7e2360f8e8842f0bb02",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 2,
+          "quorumCancelledExecutions": 2,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-18T22:31:11.610Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "sourceSha256": "9bf5631b8f537cbe27bd82457db055c016fc53e0f8499a22223424189b66b3a3",
+        "schemaSha256": "49cbbbc0a319b32be8e0a221ed11857aa832cb460737820af221924beaeeb0a8",
+        "methodNames": [
+          "adjudicate_prospective_intent",
+          "authenticate_prospective_intent",
+          "commit_prospective_intent",
+          "create_mandate",
+          "freeze_mandate",
+          "get_adjudications",
+          "get_intents",
+          "get_mandates",
+          "get_permit_status",
+          "get_permits",
+          "get_schema",
+          "issue_prospective_permit"
+        ],
+        "contractAddress": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a"
+      }
+    },
+    {
+      "key": "create_mandate",
+      "method": "create_mandate",
+      "argumentsSha256": "0x70af5c8bd3931531d8fcb3753ead9234eaddac5712d43a6014396d0a9fdfefb5",
+      "args": [
+        "FIREWALL-SEPOLIA-PROSPECTIVE-2026-10-18-8eaf7160",
+        "Authorize one exact prospective call only: after the controlled 1-of-1 Ethereum Sepolia Safe installs the already deployed Firewall Guard through its owner-authorized setGuard operation, the Safe may make one zero-value CALL at the resulting exact nonce to 0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4. The calldata is the four-byte owner() selector; it reads the Guard owner and has no asset or configuration effect. Do not authorize any transfer, different target or calldata, delegatecall, owner or threshold change, module activation, Guard removal, replay, or other Safe action. The installation is a separate owner-signed setup step; this mandate covers only the later exact Safe call, which requires a finalized canonical permit and relay attestation."
+      ],
+      "senderNonce": "64",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+      "submittedAt": "2026-10-18T22:32:29.373Z",
+      "evmSubmissionHash": "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+        "transactionIndex": "0x0",
+        "blockHash": "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+            "transactionIndex": 0,
+            "blockHash": "0x1539af820275244b9331024f26b6ab894cc0365a37ed4ad84ec2a5ccee0d9eef",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "ERROR",
+            "resultStatus": "contract_error"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 3,
+          "quorumCancelledExecutions": 1,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-18T22:33:09.979Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "mandateId": "MAN3-00000001",
+        "state": "MANDATE_DRAFT",
+        "proposalHash": "0x42453bc4b40bfb5c34838f6addb118fcba2e991975ba60a2df69c2f8c1fe853e"
+      }
+    },
+    {
+      "key": "freeze_mandate",
+      "method": "freeze_mandate",
+      "argumentsSha256": "0x8a122ec804fe85410ed0c12719921b4e96e74cf8b4d8fe8f01ad5ba284a8bf35",
+      "args": [
+        "MAN3-00000001"
+      ],
+      "senderNonce": "65",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+      "submittedAt": "2026-10-18T22:34:37.765Z",
+      "evmSubmissionHash": "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+        "transactionIndex": "0x0",
+        "blockHash": "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+            "transactionIndex": 0,
+            "blockHash": "0x66b06d59567552362c2c1c50ad17b654094018a370ed3ed396112b3fb01e626c",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 5,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 5,
+          "idleVotes": 0,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 4,
+          "quorumCancelledExecutions": 0,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-18T22:35:18.373Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "mandateId": "MAN3-00000001",
+        "state": "MANDATE_FROZEN",
+        "frozenAt": 1792362875
+      }
+    },
+    {
+      "key": "commit_prospective_intent",
+      "method": "commit_prospective_intent",
+      "argumentsSha256": "0x7dbeda28e49b2271a419439d8aef304b3aba92167bb860d23a1a168a87d3fd86",
+      "args": [
+        "MAN3-00000001",
+        "0x26cbcb673a38b2a72eaead4f7b2fa3a3d95d5bbe74dff696fd43c1427d493919",
+        "11155111",
+        "0x9387e30C1b1a864686Df80d46786C4F29fe735ba",
+        "2",
+        "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "0",
+        "0x8da5cb5b",
+        "0",
+        "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8",
+        "0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605",
+        "11944070",
+        "1792380964",
+        "1792383964",
+        "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8"
+      ],
+      "senderNonce": "66",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+      "submittedAt": "2026-10-18T22:36:46.987Z",
+      "evmSubmissionHash": "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+        "transactionIndex": "0x0",
+        "blockHash": "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+            "transactionIndex": 0,
+            "blockHash": "0xcde58e237ed8a33614e708b98a2a8323603a2a2f09d175b569f65da440b9e4da",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 2,
+          "quorumCancelledExecutions": 2,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-18T22:37:27.797Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "intentId": "0x26cbcb673a38b2a72eaead4f7b2fa3a3d95d5bbe74dff696fd43c1427d493919",
+        "state": "INTENT_COMMITTED",
+        "chainId": 11155111,
+        "safe": "0x9387e30c1b1a864686df80d46786c4f29fe735ba",
+        "safeNonce": 2,
+        "target": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "value": "0",
+        "calldataHash": "0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5",
+        "operation": 0,
+        "evidenceBlock": 11944070,
+        "guard": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4"
+      }
+    },
+    {
+      "key": "authenticate_prospective_intent",
+      "method": "authenticate_prospective_intent",
+      "argumentsSha256": "0x33f468e1ea9419968488be0657e94ad619fc564524dd1c380f4db00ce1d69fae",
+      "args": [
+        "0x26cbcb673a38b2a72eaead4f7b2fa3a3d95d5bbe74dff696fd43c1427d493919"
+      ],
+      "senderNonce": "67",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+      "submittedAt": "2026-10-18T22:38:55.622Z",
+      "evmSubmissionHash": "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+        "transactionIndex": "0x0",
+        "blockHash": "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+            "transactionIndex": 0,
+            "blockHash": "0x6b94f7b299958393b6e888ae81a4f622071623868421550231ccccecb17e32c0",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "ERROR",
+            "resultStatus": "contract_error"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 3,
+          "quorumCancelledExecutions": 1,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-18T22:39:51.768Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "intentId": "0x26cbcb673a38b2a72eaead4f7b2fa3a3d95d5bbe74dff696fd43c1427d493919",
+        "state": "INTENT_AUTHENTICATED",
+        "evidenceHash": "0xfb964dc4360014af87276f1b544fd3ae4f94b0537a1d9b8199bf4c5663f8d15a",
+        "providers": [
+          "DRPC_SEPOLIA",
+          "PUBLICNODE_SEPOLIA_BLOCKSCOUT"
+        ],
+        "providerStateAgreement": true,
+        "snapshotBlock": 11944070,
+        "guardInstallPending": true,
+        "plannedExecutionNonce": 2,
+        "receiptClaimedForFutureExecution": false
+      }
+    },
+    {
+      "key": "commit_prospective_intent_attempt_2",
+      "method": "commit_prospective_intent",
+      "argumentsSha256": "0xf62e6afc08072a0b6c7f60aba247fa0833077f971b161e964d3358d3144f22c9",
+      "args": [
+        "MAN3-00000001",
+        "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+        "11155111",
+        "0x9387e30C1b1a864686Df80d46786C4F29fe735ba",
+        "3",
+        "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "0",
+        "0x8da5cb5b",
+        "0",
+        "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8",
+        "0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605",
+        "11946630",
+        "1792412123",
+        "1792415123",
+        "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8"
+      ],
+      "senderNonce": "68",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+      "submittedAt": "2026-10-19T07:17:44.694Z",
+      "evmSubmissionHash": "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+        "transactionIndex": "0x0",
+        "blockHash": "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+            "transactionIndex": 0,
+            "blockHash": "0xa50c909236ae49e3d3ae299e6f923b22fa8f9bff09310ddb5f04fe64e6348f3e",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 5,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 5,
+          "idleVotes": 0,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 4,
+          "quorumCancelledExecutions": 0,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-19T07:18:24.239Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+        "state": "INTENT_COMMITTED",
+        "chainId": 11155111,
+        "safe": "0x9387e30c1b1a864686df80d46786c4f29fe735ba",
+        "safeNonce": 3,
+        "target": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "value": "0",
+        "calldataHash": "0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5",
+        "operation": 0,
+        "evidenceBlock": 11946630,
+        "guard": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4"
+      }
+    },
+    {
+      "key": "authenticate_prospective_intent_attempt_2",
+      "method": "authenticate_prospective_intent",
+      "argumentsSha256": "0xeb3a8c0c178be233e4b0b21fd87abc10d765f630245301fa64229dd19783ef59",
+      "args": [
+        "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6"
+      ],
+      "senderNonce": "69",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+      "submittedAt": "2026-10-19T07:34:43.796Z",
+      "evmSubmissionHash": "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+        "transactionIndex": "0x0",
+        "blockHash": "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+            "transactionIndex": 0,
+            "blockHash": "0x3a05f4619f59a34fb093ff2eea630ae3d9f807146e6121e5082ebfcf904fe8a1",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 2,
+          "quorumCancelledExecutions": 2,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-19T07:35:23.562Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+        "state": "INTENT_AUTHENTICATED",
+        "evidenceHash": "0x719ba6274e3f6ce7a345cc8711572d7b7c7097d9b45451e39fac3214183ceba0",
+        "providers": [
+          "DRPC_SEPOLIA",
+          "PUBLICNODE_SEPOLIA_BLOCKSCOUT"
+        ],
+        "providerStateAgreement": true,
+        "snapshotBlock": 11946630,
+        "guardInstallPending": true,
+        "plannedExecutionNonce": 3,
+        "receiptClaimedForFutureExecution": false
+      }
+    },
+    {
+      "key": "adjudicate_prospective_intent_attempt_2",
+      "method": "adjudicate_prospective_intent",
+      "argumentsSha256": "0xeb3a8c0c178be233e4b0b21fd87abc10d765f630245301fa64229dd19783ef59",
+      "args": [
+        "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6"
+      ],
+      "senderNonce": "70",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+      "submittedAt": "2026-10-19T07:40:03.706Z",
+      "evmSubmissionHash": "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+        "transactionIndex": "0x0",
+        "blockHash": "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+            "transactionIndex": 0,
+            "blockHash": "0x94f730dcccfa731522f432a41be07405dc8c370295c914dbd0bf43639004f51c",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 2,
+          "quorumCancelledExecutions": 2,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-19T07:40:43.360Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "adjudicationId": "ADJ3-00000001",
+        "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+        "verdict": "PROSPECTIVE_AUTHORIZED",
+        "generation": 1,
+        "evidenceSufficient": true,
+        "intentSatisfied": true,
+        "scopeExpanded": false,
+        "prohibitedEffectPresent": false,
+        "economicTermsConsistent": true,
+        "administrativeAuthorityChanged": false,
+        "implementationBehaviorConsistent": true
+      }
+    },
+    {
+      "key": "issue_prospective_permit_attempt_2",
+      "method": "issue_prospective_permit",
+      "argumentsSha256": "0x99b4a30307eb4d77f35a2e539215cda4413242ebce50b3da44f54398a8401ea1",
+      "args": [
+        "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+        "ADJ3-00000001"
+      ],
+      "senderNonce": "71",
+      "status": "CANONICAL_READBACK_CONFIRMED",
+      "estimatedGas": "500000",
+      "estimatedEvmFeeWei": "0",
+      "genBalanceBeforeWei": "4999999999999999970",
+      "genlayerTransactionId": "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+      "submittedAt": "2026-10-19T07:45:23.600Z",
+      "evmSubmissionHash": "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+      "evmHashRelationship": "GENLAYER_TX_ID_EQUALS_EVM_RECEIPT_HASH_VERIFIED",
+      "outerEvmReceipt": {
+        "transactionHash": "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+        "transactionIndex": "0x0",
+        "blockHash": "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+        "blockNumber": "0x0",
+        "from": "0x33653E6e86807e41682D3346CDf648D6653384B1",
+        "to": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+        "cumulativeGasUsed": "0x7a1200",
+        "gasUsed": "0x7a1200",
+        "effectiveGasPrice": "0x0",
+        "type": "0x0",
+        "contractAddress": null,
+        "logs": [
+          {
+            "address": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+            "topics": [
+              "0xdab9102861c7483a187584d6371d88316f005af507982ccf95c110879f3ed5a5",
+              "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+              "0x0000000000000000000000007198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+              "0x00000000000000000000000033653E6e86807e41682D3346CDf648D6653384B1"
+            ],
+            "data": "0x",
+            "blockNumber": 0,
+            "transactionHash": "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+            "transactionIndex": 0,
+            "blockHash": "0xcd2cde561cb6c1d0defa59725d2b46ceb9739bd7806027bb0c3ed611f062adf2",
+            "logIndex": 0,
+            "removed": false
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1"
+      },
+      "actualEvmFeeWei": "0",
+      "consensus": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "resultCode": 6,
+        "execution": null,
+        "voteCount": 5,
+        "agreeVotes": 3,
+        "validatorRecords": [
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "idle",
+            "execution": "ERROR"
+          },
+          {
+            "vote": "agree",
+            "execution": "SUCCESS"
+          }
+        ],
+        "leaderReceipts": [
+          {
+            "mode": "leader",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          },
+          {
+            "mode": "validator",
+            "execution": "SUCCESS",
+            "resultStatus": "return"
+          }
+        ],
+        "validatorState": {
+          "valid": true,
+          "status": "FINALIZED",
+          "result": "MAJORITY_AGREE",
+          "agreedVotes": 3,
+          "idleVotes": 2,
+          "revealedVotes": 5,
+          "validatorSuccessfulExecutions": 2,
+          "quorumCancelledExecutions": 2,
+          "leaderReturned": true,
+          "reason": "FINALIZED_MAJORITY_SUCCESS"
+        }
+      },
+      "feeAccounting": null,
+      "lastPollAt": "2026-10-19T07:46:03.269Z",
+      "genBalanceAfterWei": "4999999999999999970",
+      "observedGenBalanceDeltaWei": "0",
+      "canonicalReadback": {
+        "permitId": "PPR-00000001",
+        "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+        "mandateId": "MAN3-00000001",
+        "adjudicationId": "ADJ3-00000001",
+        "bindingHash": "0xf2cab3d9a4b0223f91635a0e836b4cb58a12076196d44a33d25a7abfdc31691e",
+        "status": "ACTIVE",
+        "permitStatus": "ACTIVE",
+        "expiresAt": 1792415123,
+        "safe": "0x9387e30c1b1a864686df80d46786c4f29fe735ba",
+        "chainId": 11155111,
+        "safeNonce": 3,
+        "target": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+        "value": "0",
+        "calldataHash": "0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5",
+        "operation": 0
+      }
+    }
+  ],
+  "updatedAt": "2026-10-19T07:48:36.256Z",
+  "proposalExternalId": "FIREWALL-SEPOLIA-PROSPECTIVE-2026-10-18-8eaf7160",
+  "mandateId": "MAN3-00000001",
+  "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+  "intentArgs": [
+    "MAN3-00000001",
+    "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+    "11155111",
+    "0x9387e30C1b1a864686Df80d46786C4F29fe735ba",
+    "3",
+    "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+    "0",
+    "0x8da5cb5b",
+    "0",
+    "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+    "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8",
+    "0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605",
+    "11946630",
+    "1792412123",
+    "1792415123",
+    "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8"
+  ],
+  "safeNonceBeforeInstallation": "2",
+  "intendedExecutionNonce": "3",
+  "supersededIntentRecords": [
+    {
+      "intentId": "0x26cbcb673a38b2a72eaead4f7b2fa3a3d95d5bbe74dff696fd43c1427d493919",
+      "mandateId": "MAN3-00000001",
+      "state": "INTENT_AUTHENTICATED",
+      "evidenceHash": "0xfb964dc4360014af87276f1b544fd3ae4f94b0537a1d9b8199bf4c5663f8d15a",
+      "executionDeadline": 1792380964,
+      "permitExpiry": 1792383964,
+      "supersededAt": "2026-10-19T07:15:21.256Z",
+      "reason": "ORIGINAL_PROSPECTIVE_INTENT_EXPIRED_DURING_SESSION_GAP_NO_ADJUDICATION_OR_PERMIT_EXISTS"
+    }
+  ],
+  "intentAttempt": 2,
+  "adjudicationId": "ADJ3-00000001",
+  "permitId": "PPR-00000001",
+  "finalCanonicalReadback": {
+    "source": "LIVE_CANONICAL",
+    "chainId": 61999,
+    "rpcUrl": "https://studio.genlayer.com/api",
+    "contractAddress": "0x7198B73c205cCC4a7278DA7E5f234D04BF0F465a",
+    "sourceSha256": "9bf5631b8f537cbe27bd82457db055c016fc53e0f8499a22223424189b66b3a3",
+    "mandate": {
+      "mandateId": "MAN3-00000001",
+      "creator": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+      "proposalExternalId": "FIREWALL-SEPOLIA-PROSPECTIVE-2026-10-18-8eaf7160",
+      "proposalText": "Authorize one exact prospective call only: after the controlled 1-of-1 Ethereum Sepolia Safe installs the already deployed Firewall Guard through its owner-authorized setGuard operation, the Safe may make one zero-value CALL at the resulting exact nonce to 0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4. The calldata is the four-byte owner() selector; it reads the Guard owner and has no asset or configuration effect. Do not authorize any transfer, different target or calldata, delegatecall, owner or threshold change, module activation, Guard removal, replay, or other Safe action. The installation is a separate owner-signed setup step; this mandate covers only the later exact Safe call, which requires a finalized canonical permit and relay attestation.",
+      "proposalHash": "0x42453bc4b40bfb5c34838f6addb118fcba2e991975ba60a2df69c2f8c1fe853e",
+      "state": "MANDATE_FROZEN",
+      "frozenAt": 1792362875
+    },
+    "intent": {
+      "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+      "mandateId": "MAN3-00000001",
+      "creator": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+      "chainId": 11155111,
+      "safe": "0x9387e30c1b1a864686df80d46786c4f29fe735ba",
+      "safeNonce": 3,
+      "target": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+      "value": "0",
+      "calldata": "0x8da5cb5b",
+      "calldataHash": "0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5",
+      "operation": 0,
+      "guard": "0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4",
+      "guardCodeHash": "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8",
+      "targetCodeHash": "0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8",
+      "safeDeploymentTx": "0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605",
+      "evidenceBlock": 11946630,
+      "executionDeadline": 1792412123,
+      "permitExpiry": 1792415123,
+      "intentHash": "0x022f9694052b803fa5500cbe1fad5c6ff89d23ec4fd90deaea4c62a76ee891dc",
+      "state": "INTENT_ADJUDICATED",
+      "authenticatedEvidence": "{\"evidence_class\":\"PRE_EXECUTION_CHAIN_STATE\",\"independently_authenticated\":{\"provider_a\":{\"chain_id\":11155111,\"provider\":\"DRPC_SEPOLIA\",\"safe_deployment\":{\"block_hash\":\"0x5b5df729a3f2355691019a9cd37ef50d9f8e809e715354366fd545044042645f\",\"block_number\":11930638,\"factory\":\"0x4e1dcf7ad4e460cfd30791ccc4f9c8a4f820ec67\",\"factory_code_hash\":\"0x50c3cdc4074750a7a974204a716c999edd37482f907608d960b2b025ee0b3317\",\"proxy_creation_event\":true,\"receipt_status\":\"SUCCESS\",\"singleton\":\"0x41675c099f32341bf84bfc5382af534df5c7461a\",\"singleton_code_hash\":\"0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4\",\"transaction_hash\":\"0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605\"},\"safe_state\":{\"address\":\"0x9387e30c1b1a864686df80d46786c4f29fe735ba\",\"enabled_modules\":[],\"guard\":\"0x0000000000000000000000000000000000000000\",\"guard_code_hash\":\"0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8\",\"guard_installation_pending\":true,\"implementation\":\"0x41675c099f32341bf84bfc5382af534df5c7461a\",\"implementation_code_hash\":\"0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4\",\"intended_guard\":\"0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4\",\"nonce\":2,\"owners\":[\"0x33653e6e86807e41682d3346cdf648d6653384b1\"],\"planned_execution_nonce\":3,\"proxy_code_hash\":\"0xd7d408ebcd99b2b70be43e20253d6d92a8ea8fab29bd3be7f55b10032331fb4c\",\"threshold\":1},\"snapshot\":{\"hash\":\"0x3558f84e2ddf71e2991419dc90e2e6038f59f58774deb52dcc7a485168693cb1\",\"number\":11946630,\"timestamp\":1792394088},\"target_state\":{\"address\":\"0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4\",\"calldata_hash\":\"0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5\",\"code_hash\":\"0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8\",\"operation\":0,\"value\":\"0\"}},\"provider_b\":{\"chain_id\":11155111,\"provider\":\"PUBLICNODE_SEPOLIA_BLOCKSCOUT\",\"safe_deployment\":{\"block_hash\":\"0x5b5df729a3f2355691019a9cd37ef50d9f8e809e715354366fd545044042645f\",\"block_number\":11930638,\"factory\":\"0x4e1dcf7ad4e460cfd30791ccc4f9c8a4f820ec67\",\"factory_code_hash\":\"0x50c3cdc4074750a7a974204a716c999edd37482f907608d960b2b025ee0b3317\",\"proxy_creation_event\":true,\"receipt_status\":\"SUCCESS\",\"singleton\":\"0x41675c099f32341bf84bfc5382af534df5c7461a\",\"singleton_code_hash\":\"0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4\",\"transaction_hash\":\"0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605\"},\"safe_state\":{\"address\":\"0x9387e30c1b1a864686df80d46786c4f29fe735ba\",\"enabled_modules\":[],\"guard\":\"0x0000000000000000000000000000000000000000\",\"guard_code_hash\":\"0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8\",\"guard_installation_pending\":true,\"implementation\":\"0x41675c099f32341bf84bfc5382af534df5c7461a\",\"implementation_code_hash\":\"0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4\",\"intended_guard\":\"0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4\",\"nonce\":2,\"owners\":[\"0x33653e6e86807e41682d3346cdf648d6653384b1\"],\"planned_execution_nonce\":3,\"proxy_code_hash\":\"0xd7d408ebcd99b2b70be43e20253d6d92a8ea8fab29bd3be7f55b10032331fb4c\",\"threshold\":1},\"snapshot\":{\"hash\":\"0x3558f84e2ddf71e2991419dc90e2e6038f59f58774deb52dcc7a485168693cb1\",\"number\":11946630,\"timestamp\":1792394088},\"target_state\":{\"address\":\"0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4\",\"calldata_hash\":\"0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5\",\"code_hash\":\"0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8\",\"operation\":0,\"value\":\"0\"}},\"provider_b_receipt_source\":\"BLOCKSCOUT_SEPOLIA_REST\",\"provider_state_agreement\":true,\"receipt_claimed_for_future_execution\":false},\"intent\":{\"calldata\":\"0x8da5cb5b\",\"calldata_hash\":\"0xe29dd0d0fb6fba5ccf9b748bb30679974f8474b3e5bcf7e58d6238215be91ca5\",\"chain_id\":11155111,\"evidence_block\":11946630,\"execution_deadline\":1792412123,\"guard\":\"0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4\",\"guard_code_hash\":\"0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8\",\"intent_id\":\"0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6\",\"operation\":0,\"owner\":\"0x33653e6e86807e41682d3346cdf648d6653384b1\",\"permit_expiry\":1792415123,\"safe\":\"0x9387e30c1b1a864686df80d46786c4f29fe735ba\",\"safe_deployment_tx\":\"0xa1554d38879c0da9f38897cc6ea31b97a0299e927b2911306e694e9a7092f605\",\"safe_nonce\":3,\"target\":\"0x2e8cafa2053502cf29516f6e1d47cd59a8b9a6b4\",\"target_code_hash\":\"0x3f016a7156a3e5e0caeb61ea5311fb7952973f25cb807afeff4bf789927735f8\",\"value\":\"0\"},\"schema\":\"FIREWALL_PROSPECTIVE_EVIDENCE_V2\"}",
+      "evidenceHash": "0x719ba6274e3f6ce7a345cc8711572d7b7c7097d9b45451e39fac3214183ceba0",
+      "adjudicationId": "ADJ3-00000001"
+    },
+    "adjudication": {
+      "adjudicationId": "ADJ3-00000001",
+      "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+      "generation": 1,
+      "intentSatisfied": true,
+      "scopeExpanded": false,
+      "prohibitedEffectPresent": false,
+      "economicTermsConsistent": true,
+      "administrativeAuthorityChanged": false,
+      "implementationBehaviorConsistent": true,
+      "evidenceSufficient": true,
+      "verdict": "PROSPECTIVE_AUTHORIZED"
+    },
+    "permit": {
+      "permitId": "PPR-00000001",
+      "intentId": "0xec8e355a2da1409a3033a60e491029cfbce3a0764c8a06f2de1421ec4b27bbd6",
+      "mandateId": "MAN3-00000001",
+      "adjudicationId": "ADJ3-00000001",
+      "generation": 1,
+      "issuedAt": 1792395915,
+      "executionDeadline": 1792412123,
+      "expiresAt": 1792415123,
+      "intentHash": "0x022f9694052b803fa5500cbe1fad5c6ff89d23ec4fd90deaea4c62a76ee891dc",
+      "evidenceHash": "0x719ba6274e3f6ce7a345cc8711572d7b7c7097d9b45451e39fac3214183ceba0",
+      "bindingHash": "0xf2cab3d9a4b0223f91635a0e836b4cb58a12076196d44a33d25a7abfdc31691e",
+      "status": "ACTIVE"
+    },
+    "permitStatus": "ACTIVE"
+  }
+}

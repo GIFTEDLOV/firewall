@@ -1,20 +1,26 @@
 import ast
-import json
 from pathlib import Path
+
 
 _CONTRACT_PATH = Path(__file__).resolve().parents[2] / "contracts" / "firewall.py"
 _CONTRACT_TREE = ast.parse(_CONTRACT_PATH.read_text(encoding="utf-8"))
-_RESOLVER_NODE = next(
+_VECTOR_NODE = next(
     node for node in _CONTRACT_TREE.body
-    if isinstance(node, ast.FunctionDef) and node.name == "_resolve_prompt_output"
+    if isinstance(node, ast.FunctionDef) and node.name == "_exact_vector"
 )
-_RESOLVER_MODULE = ast.fix_missing_locations(ast.Module(body=[_RESOLVER_NODE], type_ignores=[]))
-_RESOLVER_NAMESPACE = {}
-exec(compile(_RESOLVER_MODULE, str(_CONTRACT_PATH), "exec"), _RESOLVER_NAMESPACE)
-_resolve_prompt_output = _RESOLVER_NAMESPACE["_resolve_prompt_output"]
+_VECTOR_MODULE = ast.fix_missing_locations(ast.Module(body=[_VECTOR_NODE], type_ignores=[]))
+_VECTOR_NAMESPACE = {
+    "SEMANTIC_KEYS": (
+        "intent_satisfied", "scope_expanded", "prohibited_effect_present",
+        "economic_terms_consistent", "administrative_authority_changed",
+        "implementation_behavior_consistent", "evidence_sufficient",
+    ),
+}
+exec(compile(_VECTOR_MODULE, str(_CONTRACT_PATH), "exec"), _VECTOR_NAMESPACE)
+_exact_vector = _VECTOR_NAMESPACE["_exact_vector"]
 
 
-def semantic_result():
+def valid_vector():
     return {
         "intent_satisfied": True,
         "scope_expanded": False,
@@ -26,33 +32,16 @@ def semantic_result():
     }
 
 
-class CalldataResponse:
-    def __init__(self, calldata):
-        self.calldata = calldata
+def test_v2_accepts_only_the_exact_boolean_semantic_vector():
+    valid = valid_vector()
+    assert _exact_vector(valid) == valid
 
-
-class GetResponse:
-    def __init__(self, value):
-        self.value = value
-
-    def get(self):
-        return self.value
-
-
-def test_known_runtime_shapes_normalize_to_supported_payloads():
-    valid = semantic_result()
-    encoded = json.dumps(valid, separators=(",", ":"))
-    accepted = [
-        (valid, valid),
-        (encoded, encoded),
-        (encoded.encode("utf-8"), encoded),
-        (CalldataResponse(valid), valid),
-        (CalldataResponse(encoded), encoded),
-        (GetResponse(valid), valid),
-        (GetResponse(encoded), encoded),
-    ]
-    for response, expected in accepted:
-        assert _resolve_prompt_output(response) == expected
-
-    for response in (7, object(), list(valid.items()), None):
-        assert _resolve_prompt_output(response) is None
+    for malformed in (
+        {key: value for key, value in valid.items() if key != "evidence_sufficient"},
+        {**valid, "unexpected": False},
+        {**valid, "intent_satisfied": "true"},
+        {**valid, "intent_satisfied": 1},
+        list(valid.items()),
+        None,
+    ):
+        assert _exact_vector(malformed) is None

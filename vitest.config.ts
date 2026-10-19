@@ -8,6 +8,7 @@ export default defineConfig({
     "@firewall/policy-engine": resolve("packages/policy-engine/src/index.ts"),
     "@firewall/evidence": resolve("packages/evidence/src/index.ts"),
     "@firewall/evm-analyzer": resolve("packages/evm-analyzer/src/index.ts"),
+    "@firewall/workflow": resolve("packages/workflow/src/index.ts"),
   } },
   test: {
     include: ["packages/**/src/**/*.test.ts", "tests/**/*.test.ts"],

@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const files = execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split(/\r?\n/).filter(Boolean);
 const patterns = [
@@ -8,10 +8,14 @@ const patterns = [
   /(?:VERCEL_TOKEN|GENLAYER_PRIVATE_KEY|PRIVATE_KEY)\s*[:=]\s*(?!\$\{?)[^\s#]{12,}/i,
 ];
 const findings = [];
+let scanned = 0;
 for (const file of files) {
   if (file.endsWith(".env.example") || file.includes("node_modules")) continue;
+  // Deleted tracked files are part of the worktree diff, not readable inputs.
+  if (!existsSync(file)) continue;
+  scanned += 1;
   const text = readFileSync(file, "utf8");
   for (const pattern of patterns) if (pattern.test(text)) findings.push(file);
 }
 if (findings.length) throw new Error(`POSSIBLE_SECRET:${[...new Set(findings)].join(",")}`);
-console.log(JSON.stringify({ ok: true, scanned: files.length }));
+console.log(JSON.stringify({ ok: true, scanned }));

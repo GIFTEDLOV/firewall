@@ -1,12 +1,14 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { EvidenceBundleSchema, ExecutionPackageSchema, MandateSchema, mandateIdentityHash, type EvidenceBundle, type ExecutionPackage, type Mandate } from "@firewall/domain";
-import { authenticateEvidenceBundle } from "@firewall/evidence";
+import { createUnverifiedEvidenceBundle } from "@firewall/evidence";
 import { analyzeExecutionPackage, compareExecutionToMandate, detectDeterministicViolations, type AnalyzeCallInput } from "@firewall/evm-analyzer";
 import { ManualCanonicalAdapter, OpenZeppelinGovernorAdapter, SafeAdapter } from "@firewall/governance-adapters";
 import { deriveReasons, deriveVerdict } from "@firewall/policy-engine";
 import { formatEntityId } from "@firewall/shared";
 import type { CanonicalReadModel, CanonicalStateReader } from "@firewall/indexer";
+import type { EvmEvidence } from "@firewall/evidence";
+export * from "./protected.js";
 
 export const LOCAL_WORKFLOW_SCOPE = "LOCAL_PRECHAIN_ANALYSIS" as const;
 export const LOCAL_ANALYSIS_CHAIN_ID = 61127 as const;
@@ -22,6 +24,7 @@ export type LocalWorkflowState = {
   readonly mandates: Map<string, Mandate>;
   readonly executions: Map<string, ExecutionPackage>;
   readonly evidence: Map<string, EvidenceBundle>;
+  readonly evmEvidence: Map<string, unknown>;
   readonly canonical: CanonicalStateReader;
 };
 
@@ -76,6 +79,13 @@ export class FirewallApplicationService {
 
   getMandate(id: string): Mandate | null { return this.state.mandates.get(id) ?? null; }
   getExecution(id: string): ExecutionPackage | null { return this.state.executions.get(id) ?? null; }
+  getEvmEvidence(id: string): EvmEvidence | null { return (this.state.evmEvidence.get(id) as EvmEvidence | undefined) ?? null; }
+  saveEvmEvidence(evidence: EvmEvidence): EvmEvidence {
+    const execution = this.state.executions.get(evidence.executionId);
+    if (!execution || execution.chainId !== evidence.chainId) throw new Error("EVIDENCE_EXECUTION_BINDING_MISMATCH");
+    this.state.evmEvidence.set(evidence.executionId, evidence);
+    return evidence;
+  }
 
   freezeMandate(id: string, frozenAt = new Date().toISOString()): Mandate {
     const current = this.state.mandates.get(id);
@@ -99,7 +109,7 @@ export class FirewallApplicationService {
   authenticateEvidence(input: unknown): EvidenceBundle {
     const parsed = EvidenceBundleSchema.parse(input);
     const { bundleHash: _bundleHash, authenticatedAt: _authenticatedAt, status: _status, ...base } = parsed;
-    const evidence = authenticateEvidenceBundle({ ...base, authenticatedAt: new Date().toISOString() });
+    const evidence = createUnverifiedEvidenceBundle({ ...base, authenticatedAt: null });
     if (evidence.executionId !== parsed.executionId) throw new Error("EVIDENCE_EXECUTION_BINDING_MISMATCH");
     this.state.evidence.set(evidence.evidenceId, evidence);
     return evidence;
@@ -112,7 +122,7 @@ export class FirewallApplicationService {
 }
 
 export function createLocalWorkflowState(canonical: CanonicalStateReader): LocalWorkflowState {
-  return { mandates: new Map(), executions: new Map(), evidence: new Map(), canonical };
+  return { mandates: new Map(), executions: new Map(), evidence: new Map(), evmEvidence: new Map(), canonical };
 }
 
 export function createLocalWorkflowRuntime(canonical: CanonicalStateReader) {

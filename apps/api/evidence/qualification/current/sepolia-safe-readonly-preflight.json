@@ -1,0 +1,79 @@
+{
+  "checkedAt": "2026-10-16T14:38:41.568Z",
+  "network": "Ethereum Sepolia",
+  "chainId": 11155111,
+  "safeRelease": "1.4.1",
+  "source": "safe-global/safe-deployments",
+  "results": [
+    {
+      "provider": "publicnode",
+      "url": "https://ethereum-sepolia-rpc.publicnode.com",
+      "chainId": "0xaa36a7",
+      "owner": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+      "balanceWei": "0",
+      "latestNonce": "0",
+      "pendingNonce": "0",
+      "contracts": [
+        {
+          "name": "safe.json",
+          "address": "0x41675C099F32341bf84BFc5382aF534df5C7461a",
+          "expectedCodeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4",
+          "actualCodeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4",
+          "matches": true,
+          "hasCode": true
+        },
+        {
+          "name": "safe_proxy_factory.json",
+          "address": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67",
+          "expectedCodeHash": "0x50c3cdc4074750a7a974204a716c999edd37482f907608d960b2b025ee0b3317",
+          "actualCodeHash": "0x50c3cdc4074750a7a974204a716c999edd37482f907608d960b2b025ee0b3317",
+          "matches": true,
+          "hasCode": true
+        },
+        {
+          "name": "safe_l2.json",
+          "address": "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
+          "expectedCodeHash": "0xb1f926978a0f44a2c0ec8fe822418ae969bd8c3f18d61e5103100339894f81ff",
+          "actualCodeHash": "0xb1f926978a0f44a2c0ec8fe822418ae969bd8c3f18d61e5103100339894f81ff",
+          "matches": true,
+          "hasCode": true
+        }
+      ]
+    },
+    {
+      "provider": "blockscout",
+      "url": "https://eth-sepolia.blockscout.com/api/eth-rpc",
+      "chainId": "0xaa36a7",
+      "owner": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+      "balanceWei": null,
+      "latestNonce": null,
+      "pendingNonce": null,
+      "contracts": [
+        {
+          "name": "safe.json",
+          "address": "0x41675C099F32341bf84BFc5382aF534df5C7461a",
+          "expectedCodeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4",
+          "actualCodeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4",
+          "matches": true,
+          "hasCode": true
+        },
+        {
+          "name": "safe_proxy_factory.json",
+          "address": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67",
+          "expectedCodeHash": "0x50c3cdc4074750a7a974204a716c999edd37482f907608d960b2b025ee0b3317",
+          "actualCodeHash": "0x50c3cdc4074750a7a974204a716c999edd37482f907608d960b2b025ee0b3317",
+          "matches": true,
+          "hasCode": true
+        },
+        {
+          "name": "safe_l2.json",
+          "address": "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
+          "expectedCodeHash": "0xb1f926978a0f44a2c0ec8fe822418ae969bd8c3f18d61e5103100339894f81ff",
+          "actualCodeHash": "0xb1f926978a0f44a2c0ec8fe822418ae969bd8c3f18d61e5103100339894f81ff",
+          "matches": true,
+          "hasCode": true
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Keep the Playwright dev server isolated from the production build output.
+  distDir: process.env.FIREWALL_NEXT_DIST_DIR ?? ".next",
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   transpilePackages: [
     "@firewall/domain",
@@ -11,6 +13,7 @@ const nextConfig: NextConfig = {
     "@firewall/governance-adapters",
     "@firewall/indexer",
     "@firewall/policy-engine",
+    "@firewall/safe-enforcement",
     "@firewall/shared",
     "@firewall/workflow",
   ],

@@ -1,0 +1,260 @@
+{
+  "ctor": {
+    "kwparams": {},
+    "params": [
+      [
+        "trusted_source_a",
+        "string"
+      ],
+      [
+        "trusted_source_b",
+        "string"
+      ]
+    ]
+  },
+  "methods": {
+    "adjudicate_execution": {
+      "kwparams": {},
+      "params": [
+        [
+          "execution_id",
+          "string"
+        ]
+      ],
+      "payable": false,
+      "readonly": false,
+      "ret": "any"
+    },
+    "authenticate_evidence": {
+      "kwparams": {},
+      "params": [
+        [
+          "execution_id",
+          "string"
+        ]
+      ],
+      "payable": false,
+      "readonly": false,
+      "ret": "any"
+    },
+    "commit_execution": {
+      "kwparams": {},
+      "params": [
+        [
+          "mandate_id",
+          "string"
+        ],
+        [
+          "chain_id",
+          "int"
+        ],
+        [
+          "expected_facts",
+          "string"
+        ]
+      ],
+      "payable": false,
+      "readonly": false,
+      "ret": "string"
+    },
+    "create_mandate": {
+      "kwparams": {},
+      "params": [
+        [
+          "governance_chain_id",
+          "int"
+        ],
+        [
+          "governance_contract",
+          "string"
+        ],
+        [
+          "proposal_external_id",
+          "string"
+        ],
+        [
+          "proposal_hash",
+          "bytes"
+        ],
+        [
+          "proposal_source",
+          "string"
+        ],
+        [
+          "proposal_text",
+          "string"
+        ],
+        [
+          "proposal_text_sha256",
+          "bytes"
+        ],
+        [
+          "proposal_text_bytes",
+          "int"
+        ],
+        [
+          "mandate_version",
+          "int"
+        ],
+        [
+          "mandate_digest",
+          "bytes"
+        ]
+      ],
+      "payable": false,
+      "readonly": false,
+      "ret": "string"
+    },
+    "freeze_mandate": {
+      "kwparams": {},
+      "params": [
+        [
+          "mandate_id",
+          "string"
+        ]
+      ],
+      "payable": false,
+      "readonly": false,
+      "ret": "any"
+    },
+    "get_adjudications": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": [
+        {
+          "$rep": {
+            "adjudication_id": "string",
+            "administrative_authority_changed": "bool",
+            "economic_terms_consistent": "bool",
+            "evidence_sufficient": "bool",
+            "execution_id": "string",
+            "generation": "int",
+            "implementation_behavior_consistent": "bool",
+            "intent_satisfied": "bool",
+            "prohibited_effect_present": "bool",
+            "scope_expanded": "bool",
+            "verdict": "string"
+          }
+        }
+      ]
+    },
+    "get_evidence_schema": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_executions": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": [
+        {
+          "$rep": {
+            "chain_id": "int",
+            "evidence_json": "string",
+            "evidence_status": "string",
+            "execution_id": "string",
+            "expected_facts": "string",
+            "generation": "int",
+            "mandate_id": "string",
+            "source_a": "string",
+            "source_b": "string",
+            "state": "string"
+          }
+        }
+      ]
+    },
+    "get_mandates": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": [
+        {
+          "$rep": {
+            "creator": "address",
+            "frozen_at": "int",
+            "governance_chain_id": "int",
+            "governance_contract": "string",
+            "mandate_digest": "bytes",
+            "mandate_id": "string",
+            "mandate_version": "int",
+            "proposal_external_id": "string",
+            "proposal_hash": "bytes",
+            "proposal_source": "string",
+            "proposal_text": "string",
+            "proposal_text_bytes": "int",
+            "proposal_text_sha256": "bytes",
+            "state": "string"
+          }
+        }
+      ]
+    },
+    "get_permit_status": {
+      "kwparams": {},
+      "params": [
+        [
+          "permit_id",
+          "string"
+        ]
+      ],
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_permits": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": [
+        {
+          "$rep": {
+            "adjudication_id": "string",
+            "binding_hash": "bytes",
+            "execution_id": "string",
+            "expires_at": "int",
+            "generation": "int",
+            "issued_at": "int",
+            "mandate_id": "string",
+            "mandate_version": "int",
+            "permit_id": "string",
+            "proposal_hash": "bytes",
+            "status": "string"
+          }
+        }
+      ]
+    },
+    "get_semantic_keys": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": [
+        {
+          "$rep": "string"
+        }
+      ]
+    },
+    "get_semantic_schema": {
+      "kwparams": {},
+      "params": [],
+      "readonly": true,
+      "ret": "string"
+    },
+    "issue_permit": {
+      "kwparams": {},
+      "params": [
+        [
+          "execution_id",
+          "string"
+        ],
+        [
+          "adjudication_id",
+          "string"
+        ]
+      ],
+      "payable": false,
+      "readonly": false,
+      "ret": "string"
+    }
+  }
+}

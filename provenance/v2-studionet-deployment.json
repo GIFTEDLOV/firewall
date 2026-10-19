@@ -1,0 +1,32 @@
+{
+  "status": "FINALIZED_MAJORITY_AGREE",
+  "network": "studionet",
+  "chain_id": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "deployer": "0x33653e6e86807e41682d3346cdf648d6653384b1",
+  "source_sha256": "b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163",
+  "sdk": "genlayer-js@1.1.8",
+  "fee_mode": "network_default",
+  "fee_object_passed": false,
+  "gas_price_wei": "0x0",
+  "value_wei": "0",
+  "broadcast_count": 1,
+  "deployment_transaction": "0xa3f25170cfa592fa5d289c8c9a9f9662b58815150c02190478f39ed5cb084c20",
+  "contract_address": "0x7Ab4Dc9B84f3fDEB90e9795976065F42Ea0b9528",
+  "finality": "FINALIZED",
+  "execution_result": "MAJORITY_AGREE",
+  "genvm_execution": "FINISHED_WITH_RETURN",
+  "validator_agreement": "3_AGREE_2_IDLE_AFTER_QUORUM",
+  "gen_spent_wei": "0",
+  "balance_after_wei": "5000000000000000000",
+  "canonical_readback": {
+    "source_sha256": "b52a0221795a14f7bf8b916ac7d7c0753e3dabf4fb9436e8803197cd61b05163",
+    "code_length": 32881,
+    "constructor_parameters": 2,
+    "method_count": 14,
+    "evidence_schema": "FIREWALL_EVM_EVIDENCE_V3",
+    "semantic_schema": "FIREWALL_MANDATE_V2",
+    "independent_fetch_marker": "gl.nondet.web.get",
+    "bounded_consensus_marker": "gl.eq_principle.strict_eq"
+  }
+}

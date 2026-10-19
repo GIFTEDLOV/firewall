@@ -118,6 +118,23 @@ state. The canonical deployment remains chain `61997`.
 Evidence: `apps/web/app/canonical.ts`, `packages/genlayer-client`, route/API
 tests, `scripts/check_production_truth.mjs`, and `scripts/check_routes.mjs`.
 
+## Steward remediation addendum (local, no deployment)
+
+This addendum does not rewrite the historical release above. The prior V1
+evidence record was a caller-controlled digest boundary and the prior product
+had no execution-enforcing adapter. The corrections are local and versioned:
+
+| Finding | Correction | Proof | Deployment |
+| --- | --- | --- | --- |
+| Consensus grounded in unverified records | `packages/evidence/src/evm.ts` independently reads chain facts from RPC; V2 candidate fetches and compares two source responses before adjudication | `packages/evidence/src/evm.test.ts`, `tests/direct/test_firewall_v2_candidate.py` | New V2 GenLayer deployment required |
+| No enforced execution gate | `contracts/FirewallSafeGuard.sol` verifies a relay EIP-712 authorization in Safe pre-execution hooks and binds exact call/nonce/expiry/replay/code facts | `scripts/test_safe_guard.mjs` on Ganache EVM | Local contract only; public deployment not authorized |
+
+The guard's relay is a deliberate trust assumption. It is cryptographically
+verified on the target chain but is not a trust-minimized proof of GenLayer
+state. Safe versions without a module hook must have module execution disabled
+or a separate module guard; this release rejects delegatecall and module-hook
+paths in the tested Safe-compatible harness.
+
 ## J. Frontend security and UX — PASS for implemented surface
 
 The landing page now explains the governance gap before the console. The
