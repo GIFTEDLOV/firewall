@@ -328,3 +328,9 @@ h3 { font-size: 14px; letter-spacing: .015em; }
   .footer-brand { align-items: flex-start; flex-wrap: wrap; }
   .footer-brand > span:last-child { width: 100%; margin-left: 0; }
 }
+
+.landing-header { height: 70px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 32px; position: sticky; top: 0; z-index: 10; background: rgba(7, 9, 12, .94); backdrop-filter: blur(16px); }
+.landing-nav { display: flex; align-items: center; gap: 28px; color: var(--muted); font-size: 12px; }
+.landing-nav a:hover, .landing-nav a:focus-visible { color: var(--text); }
+.enter-app-btn { font-size: 12px; font-weight: 750; background: var(--accent); color: var(--accent-ink) !important; padding: 9px 18px; min-height: 38px; display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 680px) { .landing-nav { display: none; } .landing-header { padding: 0 18px; } }

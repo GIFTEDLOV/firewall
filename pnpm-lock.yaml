@@ -81,6 +81,9 @@ importers:
       '@firewall/workflow':
         specifier: workspace:*
         version: link:../../packages/workflow
+      genlayer-js:
+        specifier: 1.1.8
+        version: 1.1.8(bufferutil@4.0.7)(eslint@9.39.5)(typescript@5.9.2)(utf-8-validate@6.0.3)(zod@3.25.76)
       next:
         specifier: 15.5.27
         version: 15.5.27(@playwright/test@1.55.1)(@types/node@24.7.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
